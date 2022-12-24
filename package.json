@@ -1,0 +1,22 @@
+{
+  "name": "gorex",
+  "version": "1.0.0",
+  "description": "gorex-login",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haris18896/gorex-login.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/haris18896/gorex-login/issues"
+  },
+  "homepage": "https://github.com/haris18896/gorex-login#readme",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
