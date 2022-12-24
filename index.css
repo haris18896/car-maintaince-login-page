@@ -1,5 +1,16 @@
 /* common styles */
 
+* {
+  font-family: 'popins', sans-serif;
+}
+
+:root {
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+}
+
 body {
   background-image: url('./assets/background-image.jpg');
   /* background-position: 50%; */
@@ -17,7 +28,7 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-direction: row;
-  height: 100vh;
+  height: 100%;
   padding: 4rem;
 }
 
@@ -25,22 +36,23 @@ body {
 }
 
 .gorex-logo {
-  width: 289px;
-  height: 74px;
+  width: 12rem;
+  /* width: 289px; */
+  /* height: 74px; */
 }
 
 .gorex-intro-text {
-  font: normal normal 600 40px Poppins;
-  letter-spacing: 0px;
-  color: #ffffff;
-  opacity: 1;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  text-align: start;
+  font-weight: 600;
 }
 
 .gorex-intro-description {
-  font: normal normal normal 24px Poppins;
-  letter-spacing: 0px;
-  color: #ffffff;
-  opacity: 1;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  text-align: start;
+  font-weight: 500;
 }
 
 .gorex-intro-app-buttons img {
@@ -54,6 +66,106 @@ body {
 
 /* Path: index.html */
 
+.gorex-registration-form {
+  width: 100%;
+}
+
+.index-form-wrapper {
+  margin-left: 4rem;
+  width: 70%;
+  max-width: 500px;
+  max-height: 686px;
+  /* background: #160C48 0% 0% no-repeat padding-box; */
+  background-color: rgba(32, 22, 67, 0.4);
+  border-radius: 37px;
+  opacity: 1;
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  padding: 1.5rem;
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.form-anchors {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 2rem;
+  flex-direction: column;
+}
+
+.form-anchors h3 {
+  font: normal normal bold 32px/48px Poppins;
+  letter-spacing: 0px;
+}
+
+.form-anchor-wrapper {
+  padding: 0.5rem 2rem;
+  width: -webkit-fill-available;
+}
+
+.registration-anchor {
+  border: 2px solid #ffffff;
+  border-radius: 30px;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  cursor: pointer;
+}
+
+.registration-anchor a {
+  color: white;
+  text-decoration: none;
+}
+
+.form-anchor-tags {
+  width: 100%;
+}
+
+.registration-anchor span {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.form-login {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+}
+
+.form-login p {
+  font: normal normal normal 24px/42px Poppins;
+  letter-spacing: 0px;
+}
+
+.login a {
+  color: white;
+  text-decoration: none;
+  text-transform: uppercase;
+  margin-left: 1rem;
+}
+
+.registration-anchor:hover {
+  cursor: pointer;
+  background: transparent linear-gradient(53deg, #362380 11%, #000 50%, #4ad594 123%) 0 0 no-repeat padding-box !important;
+}
+
+.registration-anchor .login::after {
+  border-radius: 50px;
+  content: '';
+  inset: 0;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;
+  pointer-events: none;
+  position: absolute;
+  transition: all 0.5s ease;
+}
 /* Path: corporate.html */
 
 /* Path: dealer.html */
