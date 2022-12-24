@@ -8,6 +8,50 @@ body {
   color: white;
 }
 
+.relative {
+  position: relative;
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  height: 100vh;
+  padding: 4rem;
+}
+
+.gorex-intro {
+}
+
+.gorex-logo {
+  width: 289px;
+  height: 74px;
+}
+
+.gorex-intro-text {
+  font: normal normal 600 40px Poppins;
+  letter-spacing: 0px;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.gorex-intro-description {
+  font: normal normal normal 24px Poppins;
+  letter-spacing: 0px;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.gorex-intro-app-buttons img {
+  width: 200px;
+  height: 63px;
+}
+
+.gorex-intro-app-buttons img:first-child {
+  margin-right: 1rem;
+}
+
 /* Path: index.html */
 
 /* Path: corporate.html */
