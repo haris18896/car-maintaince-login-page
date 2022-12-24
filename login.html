@@ -10,6 +10,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
         rel="stylesheet" />
@@ -35,43 +36,40 @@
                 <div class="index-form-wrapper">
                     <form class="form-anchors">
                         <div class="form-anchor-wrapper">
-                            <h3>Partner Registration</h3>
-                            <div class="'form-anchor-tags">
-                                <div class="registration-anchor" onclick="location.href='/dealer.html';">
-                                    <iconify-icon class="mr-1" icon="material-symbols:person" width="25" height="25"></iconify-icon>
-                                    <a href="./dealer.html">
-                                        Register as a Dealer
-                                    </a>
-                                    <iconify-icon class="'ml-1" icon="material-symbols:chevron-right-rounded" width="25" height="25"></iconify-icon>
-                                </div>
+                            <h3>Login to your account</h3>
+                            <div class="'login-form">
+                                <div class="input-field">
+                                    <label class="label-login">Mobile Number<span class="red" >*</span></label> 
+                                    <input
+                                        type="text"
+                                        class="input-login"
+                                        placeholder="Enter your mobile number"
+                                    />
+                                </div>                               
 
-                                <div class="registration-anchor" onclick="location.href='/provider.html';">
-                                    <iconify-icon class="'mr-1" icon="material-symbols:person" width="25" height="25"></iconify-icon>
-                                    <a href="./provider.html">
-                                        Register as Service Provider
-                                    </a>
-                                    <iconify-icon class="'ml-1" icon="material-symbols:chevron-right-rounded" width="25" height="25"></iconify-icon>
-                                </div>
-
-
-                                <div class="registration-anchor" onclick="location.href='/corporate.html';">
-
-                                    <iconify-icon class="'mr-1" icon="material-symbols:person" width="25" height="25"></iconify-icon>
-                                    <a href="./corporate.html">
-                                        Register as Corporate Customer
-                                    </a>
-                                    <iconify-icon class="'ml-1" icon="material-symbols:chevron-right-rounded" width="25" height="25"></iconify-icon>
+                                <div class="input-field">
+                                    <label class="label-login">Password<span class="red" >*</span></label> 
+                                    <input
+                                        type="password"
+                                        class="input-login"
+                                        placeholder="Enter your password"
+                                    />
+                                    <a href="#" class="forgot-password">Forgot Password?</a>
                                 </div>
                             </div>
                         </div>
 
+                        <button class="login-button">
+                            LOGIN
+                        </button>
+
                         <div class="form-login">
-                            <p>Already Registered User?</p>
-                            <div class="registration-anchor login" onclick="location.href='/login.html';">
+                            <p>Become a Gorex Partner, Join now</p>
+                            <div class="registration-anchor login" onclick="location.href='/index.html';">
 
                                 <iconify-icon class="'mr-1" icon="material-symbols:person" width="25" height="25"></iconify-icon>
-                                <a href="./login.html">
-                                    Login
+                                <a href="./index.html">
+                                    Register Now
                                 </a>
                             </div>
                         </div>

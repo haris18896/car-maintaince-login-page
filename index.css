@@ -23,6 +23,10 @@ body {
   position: relative;
 }
 
+.red {
+    color: red;
+}
+
 .ml-1 {
   margin-left: 1rem;
 }
@@ -157,27 +161,67 @@ body {
   margin-left: 1rem;
 }
 
+.login {
+  border-color: linear-gradient(53deg, #362380 11%, #000 50%, #4ad594 123%) 0 0 no-repeat padding-box !important;
+}
+
 .registration-anchor:hover {
   cursor: pointer;
   background: transparent linear-gradient(53deg, #362380 11%, #000 50%, #4ad594 123%) 0 0 no-repeat padding-box !important;
 }
 
-.registration-anchor .login::after {
-  border-radius: 50px;
-  content: '';
-  inset: 0;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  padding: 2px;
-  pointer-events: none;
-  position: absolute;
-  transition: all 0.5s ease;
+/* Path: login.html */
+.login-button {
+    width: -webkit-fill-available;
+    padding: 1rem 1.5rem;
+    color: white;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    border-radius: 20rem;
+    border: 2px solid transparent;
+    background: transparent linear-gradient(53deg, #362380 11%, #000 50%, #4ad594 123%) 0 0 no-repeat padding-box;
+}
+
+.login-button:hover {
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid white;
+}
+
+.login-form {
+    width: 100%;
+}
+
+.input-field {
+    position: relative;
+    width: -webkit-fill-available;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+}
+
+.input-login {
+    padding: 0.5rem 1rem;
+    width: -webkit-fill-available;
+
+}
+
+.forgot-password {
+    color: white;
+    margin-left: auto;
+    margin-top: 5px;
+}
+
+.label-login {
+    font-size: .875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
 }
 /* Path: corporate.html */
 
 /* Path: dealer.html */
 
-/* Path: login.html */
 
 /* Path: provider.html */
