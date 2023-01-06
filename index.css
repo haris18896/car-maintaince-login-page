@@ -12,11 +12,6 @@
 }
 
 body {
-  background-image: url('./assets/background-image.jpg');
-  /* background-position: 50%; */
-  background-repeat: no-repeat;
-  background-size: cover;
-  color: white;
 }
 
 .relative {
@@ -35,13 +30,26 @@ body {
   margin-right: 1rem;
 }
 
+.parent-div {
+  background-image: url('./assets/background-image.jpg');
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: white;
+  height: 100vh;
+  background-position: center top;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .main {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-direction: row;
-  height: 100%;
-  padding: 4rem;
+  /* height: 100vh; */
+  /* padding: 4rem; */
 }
 
 .gorex-intro {
@@ -225,7 +233,7 @@ body {
   background-color: white;
   color: rgb(23, 23, 23);
   height: 100%;
-flex: 0.5;
+  flex: 0.5;
   margin-left: 2rem;
 }
 
@@ -561,41 +569,42 @@ flex: 0.5;
 }
 
 @media (max-width: 820px) {
-    .gorex-dealer-form {
-        width: 100%;
-        flex: 1;
-    }
+  .gorex-dealer-form {
+    width: 100%;
+    flex: 1;
+  }
 }
 
 @media (max-width: 700px) {
-    .row-inputs {
-        flex-direction: column;
-    }
+  .row-inputs {
+    flex-direction: column;
+  }
 
-    .row-inputs div {
-        margin-right: 0;
-        margin-left: 0;
-        width: 100%;
-    }
+  .row-inputs div {
+    margin-right: 0;
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
-
 @media (max-width: 500px) {
+  .form-anchor-wrapper {
+    padding: 0.5rem;
+  }
 
-    .form-anchor-wrapper {
-        padding: 0.5rem;
-    }
+  .gorex-dealer {
+    padding: 1rem;
+  }
 
-    .gorex-dealer {
-        padding: 1rem;
-    }
+  .gorex-dealer-form-wrapper {
+    padding: 1rem 0.5rem;
+  }
 
-    .gorex-dealer-form-wrapper {
-        padding: 1rem 0.5rem;
-    }
-
-    .form-anchors h3, .form-login p, .gorex-dealer-header, .gorex-dealer-sub-header {
-        font-size: 1.3rem;
-        text-align: center;
-    }
+  .form-anchors h3,
+  .form-login p,
+  .gorex-dealer-header,
+  .gorex-dealer-sub-header {
+    font-size: 1.3rem;
+    text-align: center;
+  }
 }
