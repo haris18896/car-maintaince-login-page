@@ -12,11 +12,28 @@
 }
 
 body {
+  background-image: url('./assets/background-image.jpg');
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: white;
 }
 
 .relative {
   position: relative;
 }
+
+/* .language_changer {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+.language_changer button {
+  padding: 0.5rem 1rem;
+  border: 1px solid white;
+  border-radius: 4px;
+} */
 
 .red {
   color: #fc3b61;
@@ -31,16 +48,18 @@ body {
 }
 
 .parent-div {
-  background-image: url('./assets/background-image.jpg');
-  background-position: 50%;
-  background-repeat: no-repeat;
-  background-size: cover;
+  /* background-image: url('./assets/background-image.jpg'); */
+  /* background-position: 50%; */
+  /* background-repeat: no-repeat; */
+  /* background-size: cover; */
+  /* background-color: #000; */
   color: white;
-  height: 100vh;
-  background-position: center top;
+  height: 100%;
+  /* background-position: center top; */
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
 }
 
 .main {
@@ -54,31 +73,42 @@ body {
 
 .gorex-intro {
   flex: 0.5;
+
+  margin-bottom: 2rem;
 }
 
 .gorex-logo {
-  width: 12rem;
+  margin-bottom: 1.5rem;
+  width: 12rem !important;
   /* width: 289px; */
   /* height: 74px; */
 }
 
 .gorex-intro-text {
   font-size: 1.875rem;
-  line-height: 2.25rem;
+  line-height: 2rem;
   text-align: start;
   font-weight: 600;
+  margin-bottom: 1.5rem;
+  width: 75%;
 }
 
 .gorex-intro-description {
   font-size: 1.25rem;
   line-height: 1.75rem;
   text-align: start;
-  font-weight: 500;
+  font-weight: 400;
+  margin-bottom: 2rem;
+}
+
+.gorex-intro-app-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .gorex-intro-app-buttons img {
-  width: 200px;
-  height: 63px;
+  width: 10rem;
 }
 
 .gorex-intro-app-buttons img:first-child {
@@ -89,19 +119,20 @@ body {
 
 .gorex-registration-form {
   flex: 0.5;
+  margin-right: 4rem;
 }
 
 .index-form-wrapper {
   margin-left: 4rem;
-  width: 70%;
+  width: 100%;
   max-width: 500px;
   max-height: 686px;
   /* background: #160C48 0% 0% no-repeat padding-box; */
-  background-color: rgba(32, 22, 67, 0.4);
+  background-color: rgba(22, 12, 72, 0.3);
   border-radius: 37px;
   opacity: 1;
-  backdrop-filter: blur(50px);
-  -webkit-backdrop-filter: blur(50px);
+  backdrop-filter: blur(60px);
+  -webkit-backdrop-filter: blur(60px);
   padding: 1.5rem;
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
@@ -115,31 +146,52 @@ body {
 }
 
 .form-anchors h3 {
-  font: normal normal bold 32px/48px Poppins;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  margin-bottom: 2.5rem;
+  font-weight: 700;
+  font-family: Poppins;
+  /* font: normal normal bold 32px/48px Poppins; */
   letter-spacing: 0px;
+  text-align: center;
 }
 
 .form-anchor-wrapper {
-  padding: 0.5rem 2rem;
+  padding: 0.5rem;
   width: -webkit-fill-available;
 }
 
 .registration-anchor {
   border: 2px solid #ffffff;
-  border-radius: 30px;
+  border-radius: 30rem;
   text-decoration: none;
   margin-bottom: 1rem;
   padding: 1rem 1.25rem;
   color: white;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   cursor: pointer;
+}
+
+.registration-anchor div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .registration-anchor a {
   color: white;
+  font-size: 0.875rem;
+  margin-left: 1.5rem;
+
   text-decoration: none;
+}
+
+.registration-anchor-svg {
+  background: transparent linear-gradient(53deg, #362380 11%, #000 50%, #4ad594 123%) 0 0 no-repeat padding-box !important;
+  padding: 3px;
+  border-radius: 5rem;
 }
 
 .form-anchor-tags {
@@ -159,8 +211,10 @@ body {
 }
 
 .form-login p {
-  font: normal normal normal 24px/42px Poppins;
-  letter-spacing: 0px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
 }
 
 .login a {
@@ -525,11 +579,14 @@ body {
 
 /* Media Queries */
 
-@media (max-width: 1200px) {
+@media (max-width: 1000px) {
+  .gorex-logo {
+    width: 130px !important;
+  }
   .main {
     flex-direction: column-reverse;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    /* padding-left: 1rem; */
+    /* padding-right: 1rem; */
   }
 
   .gorex-intro {
@@ -543,18 +600,26 @@ body {
   }
 
   .gorex-intro-text {
+    width: 100%;
+    font-size: 1.5rem;
     text-align: center;
-    width: 90%;
   }
 
   .gorex-intro-description {
-    width: 70%;
+    font-size: 0.875rem;
+    line-height: 1rem;
+    font-size: 300;
     text-align: center;
   }
 
   .gorex-registration-form {
     width: 100%;
     flex: 1;
+    margin-right: 0rem !important;
+  }
+
+  .gorex-intro-app-buttons img {
+    width: 8rem;
   }
 
   .index-form-wrapper {
@@ -575,6 +640,12 @@ body {
   }
 }
 
+@media (min-width: 800px) {
+  .parent-div {
+    height: 100vh !important;
+  }
+}
+
 @media (max-width: 700px) {
   .row-inputs {
     flex-direction: column;
@@ -584,6 +655,34 @@ body {
     margin-right: 0;
     margin-left: 0;
     width: 100%;
+  }
+}
+
+@media (min-width: 640px) {
+  .index-form-wrapper {
+    width: 60%;
+    margin-top: 4rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .gorex-intro {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    /* padding-left: 6rem; */
+    /* padding-right: 6rem; */
+  }
+}
+
+@media (min-width: 1000px) {
+  .index-form-wrapper {
+    width: 100%;
+    margin-top: 0rem;
+  }
+
+  .gorex-intro {
+    padding-left: 4rem;
+    padding-right: 4rem;
   }
 }
 
@@ -604,7 +703,7 @@ body {
   .form-login p,
   .gorex-dealer-header,
   .gorex-dealer-sub-header {
-    font-size: 1.3rem;
+    /* font-size: 1.3rem; */
     text-align: center;
   }
 }
