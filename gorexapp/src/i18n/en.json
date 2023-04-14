@@ -1,0 +1,141 @@
+{
+  "errors": {
+    "no-internet": "Check your internet connection"
+  },
+  "common":{
+    "Continue": "Continue",
+    "Products":"Products",
+    "Services":"Services",
+    "SAR":"SAR"
+
+  },
+  "onboarding": {
+    "LetsGo": "Let’s Go with it !",
+    "AllElectrical": "All Electrical Problems",
+    "Deal": "We deal with all vehicles electrical problems",
+    "Description": "Engine Starter Troubles.\nCar Battery problems.\nMalfunctioning alternator.\nShort circuit.\nLoose spark plugs.\nLoose wires & faulty fuse boxes.\nCranking the engine.",
+    "Continue": "Continue",
+    "VehicleServices": "Vehicle Service",
+    "Selectlanguage": "Select language",
+    "Customer": "Customer",
+    "CorporateUser": "Corporate User"
+  },
+  "auth":{
+    "Login":"Login",
+    "Forgot Password?":"Forgot Password?",
+    "By continuing, you agree to Grow’s Terms of Service and Privacy Policy":"By continuing, you agree to Gorex's Terms of Service and Privacy Policy",
+    "Dont have an account. ? ":"Dont have an account?",
+    "Sign Up":"Sign Up",
+    "Register":"Register",
+    "Forgot Password":"Forgot Password",
+    "Please enter email":"Please enter email",
+    "Send Password":"Send Password"
+  },
+  "menu":{
+    "Welcome":"Welcome",
+    "Home":"Home",
+    "Wallet":"Wallet",
+    "Change Password":"Change Password",
+    "Settings":"Settings",
+    "Logout":"Logout",
+    "My Vehicles":"My Vehicles",
+    "My Orders History":"My Orders History",
+    "Delete Account":"Delete Account"
+  },
+  "branch":{
+    "Info":"Info",
+    "Address":"Address",
+    "City":"City",
+    "Opening Hours":"Opening Hours"
+  },
+  "bottom":{
+    "Grand Total":"Grand Total",
+    "Vat Amount":"Vat Amount",
+    "View Order":"View Order"
+  },
+  "product":{
+    "Add To Order":"Add To Order"
+  },
+  "order":{
+    "Job Order #":"Job Order #",
+    "Job Order":"Job Order",
+    "Service Provider Details":"Service Provider Details",
+    "Order Details":"Order Details",
+    "Order Status":"Order Status",
+    "Payment Method":"Payment Method",
+    "Brand":"Brand",
+    "Type":"Type",
+    "Time & Date":"Time & Date",
+    "Year":"Year",
+    "Name":"Name",
+    "City":"City",
+    "Parts":"Products",
+    "Finish":"Finish",
+    "Services":"Services",
+    "Location":"Location",
+    "Number Plate":"Number Plate",
+    "Vehicles Details":"Vehicles Details"
+  },
+  "payment":{
+    "Confirm Order":"Confirm Order",
+    "Wallet":"Wallet",
+    "Cash":"Cash",
+    "Parts":"Products",
+    "Order Details":"Order Details",
+    "Services":"Services",
+    "Payment method":"Payment method",
+    "Order is created successfully":"Order is created successfully",
+    "Please add a vehicle first":"Please add a vehicle first",
+    "You are not assigned with a vehicle yet":"You are not assigned with a vehicle yet"
+  },
+  "vehicle":{
+    "Add Vehicle":"Add Vehicle",
+    "By continuing, you agree to Grow’s Terms of Service and Privacy Policy":" By continuing, you agree to Gorex’s Terms of Service and Privacy Policy"
+  },
+  "congratulations":{
+    "Many":"Many",
+    "Congratulations":"Congratulations",
+    "You have successfully created your Order.":"You have successfully created your Order.",
+    "Ok":"Ok"
+  },
+  "history":{
+    "Balance":"Balance",
+    "Wallet":"Wallet",
+    "Card":"Card",
+    "Transactions":"Transactions"
+  },
+  "order_history":{
+    "Order History":"Order History",
+    "Order #":"Order #",
+    "Service Provider":"Service Provider",
+    "Order Status":"Order Status",
+    "Payment Method":"Payment Method",
+    "Amount":"Amount",
+    "VAT":"VAT",
+    "Completed":"Completed",
+    "Incompleted":"Incompleted",
+    "Accepted":"Accepted",
+    "Total Amount":"Accepted"
+  },
+  "my_vehicles":{
+    "My Vehicles":"My Vehicles",
+    "Vehicle":"Vehicle",
+    "Vehicle Brand":"Vehicle Brand",
+    "Vehicle Type":"Vehicle Type",
+    "Registration Year":"Registration Year",
+    "Number Plate":"Number Plate" 
+  },
+  "profile":{
+    "My Profile":"My Profile",
+    "Profile picture is updated":"Profile picture is updated",
+    "Update":"Update"
+  },
+  "scan":{
+    "Scan":"Scan",
+    "Scan QR here":"Scan QR here",
+    "Complete Order":"Complete Order",
+    "Accept Order":"Accept Order"
+  }
+
+
+}

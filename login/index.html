@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gorex Admin Panel</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="./index.css" />
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <section class="relative parent-div">
+      <div class="main">
+        <div class="gorex-intro">
+          <img src="./assets/logo.png" alt="Gorex Logo" class="gorex-logo" />
+          <h3 class="gorex-intro-text">Step into the modern Automotive Ecosystem</h3>
+          <p class="gorex-intro-description">
+            Our super App is a multi-dimensional overhaul that links up customers with automobile service providers.
+          </p>
+
+          <div class="gorex-intro-app-buttons">
+            <img src="./assets/ios.png" alt="ios" />
+            <img src="./assets/android.png" alt="android" />
+          </div>
+        </div>
+
+        <div class="gorex-registration-form">
+          <div class="index-form-wrapper">
+            <form class="form-anchors">
+              <div class="form-anchor-wrapper">
+                <h3>Partner Registration</h3>
+                <div class="'form-anchor-tags">
+                  <!-- <div class="registration-anchor" onclick="location.href='/dealer.html';">
+                                    <iconify-icon class="mr-1" icon="material-symbols:person" width="25" height="25"></iconify-icon>
+                                    <a href="./dealer.html">
+                                        Register as a Dealer
+                                    </a>
+                                    <iconify-icon class="'ml-1" icon="material-symbols:chevron-right-rounded" width="25" height="25"></iconify-icon>
+                                </div> -->
+
+                  <div class="registration-anchor" onclick="location.href='/provider.html';">
+                    <div>
+                      <iconify-icon
+                        class="registration-anchor-svg"
+                        icon="material-symbols:person"
+                        width="20"
+                        height="20"
+                      ></iconify-icon>
+                      <a href="./provider.html">
+                        <!-- Register as Service Provider -->
+                        Register as Partner
+                      </a>
+                    </div>
+                    <iconify-icon
+                      class="'ml-1"
+                      icon="material-symbols:chevron-right-rounded"
+                      width="25"
+                      height="25"
+                    ></iconify-icon>
+                  </div>
+
+                  <div class="registration-anchor" onclick="location.href='/corporate.html';">
+                    <div>
+                      <iconify-icon
+                        class="registration-anchor-svg"
+                        icon="material-symbols:person"
+                        width="20"
+                        height="20"
+                      ></iconify-icon>
+                      <a href="./corporate.html"> Register as Corporate Customer </a>
+                    </div>
+                    <iconify-icon
+                      class="'ml-1"
+                      icon="material-symbols:chevron-right-rounded"
+                      width="25"
+                      height="25"
+                    ></iconify-icon>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-login">
+                <p>Already Registered User?</p>
+                <div class="registration-anchor login" onclick="location.href='/login.html';">
+                  <iconify-icon
+                    class="registration-anchor-svg"
+                    icon="material-symbols:person"
+                    width="20"
+                    height="20"
+                  ></iconify-icon>
+                  <a href="./login.html"> Login </a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="https://code.iconify.design/iconify-icon/1.0.2/iconify-icon.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,140 @@
+{
+  "errors": {
+    "no-internet": "تحقق من اتصالك بالإنترنت"
+  },
+  "common":{
+    "Continue": "يكمل",
+    "Products":"منتجات",
+    "Services":"خدمات",
+    "SAR":"ريال"
+  },
+  "onboarding": {
+    "LetsGo": "دعونا نذهب معها!",
+    "AllElectrical": "جميع المشاكل الكهربائية",
+    "Deal": "نتعامل مع جميع مشاكل السيارات الكهربائية",
+    "Description": "مشاكل في بدء تشغيل المحرك. \n مشاكل بطارية السيارة. \n خلل في المولد. \n دائرة كهربائية قصيرة. \n شمعات الإشعال. \n الأسلاك الفضفاضة وصناديق الصمامات المعيبة. \n تشغيل المحرك.",
+    "Continue": "يكمل",
+    "VehicleServices": "خدمة السيارة",
+    "Selectlanguage": "اختار اللغة",
+    "Customer": "عميل",
+    "CorporateUser": "مستخدم مشترك"
+  },
+  "auth":{
+    "Login":"تسجيل الدخول",
+    "Forgot Password?":"هل نسيت كلمة السر؟",
+    "By continuing, you agree to Grow’s Terms of Service and Privacy Policy":" بالمتابعة ، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بشركة Gorex",
+    "Dont have an account. ? ":"ليس لديك حساب. ؟",
+    "Sign Up":"اشتراك",
+    "Register":"يسجل",
+    "Forgot Password":"هل نسيت كلمة السر",
+    "Please enter email":"الرجاء إدخال البريد الإلكتروني",
+    "Send Password":"إرسال كلمة المرور"
+  },
+  "menu":{
+    "Welcome":"أهلا وسهلا",
+    "Home":"مسكن",
+    "Wallet":"محفظة",
+    "Settings":"إعدادات",
+    "Change Password": "غير كلمة السر",
+    "Logout":"تسجيل خروج",
+    "My Vehicles":"مركباتي",
+    "My Orders History":"سجل طلباتي",
+    "Delete Account":"حذف الحساب"
+  },
+  "branch":{
+    "Info":"معلومات",
+    "Address":"تبوك",
+    "City":"مدينة",
+    "Opening Hours":"ساعات العمل"
+  },
+  "bottom":{
+    "Grand Total":"المبلغ الإجمالي",
+    "Vat Amount":"قيمة الضريبة",
+    "View Order":"مشاهدة الطلب"
+  },
+  "order":{
+    "Job Order #":"طلب الوظيفة #",
+    "Job Order":"طلب الوظيفة",
+    "Service Provider Details":"تفاصيل مزود الخدمة",
+    "Order Details":"تفاصيل الطلب",
+    "Order Status":"حالة الطلب",
+    "Payment Method":"طريقة الدفع او السداد",
+    "Brand":"ماركة",
+    "Type":"يكتب",
+    "Time & Date":"الوقت والتاريخ",
+    "Year":"سنة",
+    "Name":"اسم",
+    "City":"مدينة",
+    "Parts":"القطع",
+    "Finish":"إنهاء",
+    "Services":"خدمات",
+    "Location":"موقع",
+    "Number Plate":"لوحة الأرقام",
+    "Vehicles Details":"تفاصيل المركبات"
+  },
+  "payment":{
+    "Confirm Order":"أكد الطلب",
+    "Wallet":"محفظة",
+    "Cash":"نقدي",
+    "Parts":"القطع",
+    "Order Details":"تفاصيل الطلب",
+    "Services":"خدمات",
+    "Payment method":"طريقة الدفع او السداد",
+    "Order is created successfully":"تم إنشاء الطلب بنجاح",
+    "Please add a vehicle first":"الرجاء إضافة مركبة أولا",
+    "You are not assigned with a vehicle yet":"لم يتم تعيينك مع سيارة بعد"
+  },
+  "product":{
+    "Add To Order":"اضافة للأمر"
+  },
+  "vehicle":{
+    "Add Vehicle":"أضف مركبة",
+    "By continuing, you agree to Grow’s Terms of Service and Privacy Policy":" بالمتابعة ، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بشركة Gorex"
+  },
+  "congratulations":{
+    "Many":"عديدة",
+    "Congratulations":"تهانينا",
+    "You have successfully created your Order.":"لقد نجحت في إنشاء طلبك.",
+    "Ok":"موافق"
+  },
+  "history":{
+    "Balance":"الرصيد",
+    "Wallet":"محفظة",
+    "Card":"بطاقة",
+    "Transactions":"المعاملات"
+  },
+  "order_history":{
+    "Order History":"تاريخ الطلب",
+    "Order #":"ترتيب #",
+    "Service Provider":"مقدم الخدمة",
+    "Order Status":"حالة الطلب",
+    "Payment Method":"طريقة الدفع او السداد",
+    "Amount":"مقدار",
+    "Completed":"مكتمل",
+    "Incompleted":"غير مكتمل",
+    "Accepted":"وافقت",
+    "VAT":"ضريبة القيمة المضافة",
+    "Total Amount":"المبلغ الإجمالي"
+  },
+  "my_vehicles":{
+    "My Vehicles":"مركباتي",
+    "Vehicle":"عربة",
+    "Vehicle Brand":"ماركة السيارة",
+    "Vehicle Type":"نوع السيارة",
+    "Registration Year":"سنة التسجيل",
+    "Number Plate":"لوحة الأرقام" 
+  },
+  "profile":{
+    "My Profile":"ملفي",
+    "Profile picture is updated":"تم تحديث صورة الملف الشخصي",
+    "Update":"تحديث"
+  },
+  "scan":{
+    "Scan":"مسح",
+    "Scan QR here":"امسح QR هنا",
+    "Complete Order":"اكمل الطلب",
+    "Accept Order":"قبول الطلب"
+  }
+
+
+}
