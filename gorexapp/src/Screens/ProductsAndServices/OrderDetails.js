@@ -1,386 +1,469 @@
-//import liraries
+import React, {useContext, useEffect, useRef, useState} from "react";
+import {View, Text, Image, Linking, ScrollView, StyleSheet, TouchableOpacity,} from "react-native";
 
-import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  Image,
-  Text,
-  ScrollView,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
-import { AnimatedCircularProgress } from "react-native-circular-progress";
-
-import { Basket, Cart } from "../../assets";
-import BoxLayout from "../../Components/BoxLayout";
-import BackHeader from "../../Components/Header/BackHeader";
-import {
-  BLACK,
-  BLACK_OPAC,
-  BLUE,
-  GREEN,
-  GREY,
-  LIGHT_GRAY,
-  WHITE,
-} from "../../constants/colors";
-import {
-  PoppinsMedium,
-  SFProDisplayBold,
-  SFProDisplayRegular,
-  SFProDisplaySemiBold,
-} from "../../constants/fonts";
-import { hp, responsiveFontSize, wp } from "../../utils/responsiveSizes";
-import BottomBar from "./ components/BottomBar";
-
-import moment from "moment";
-import { useDispatch, useSelector } from "react-redux";
-import { changeOrderStatus, orderDetails } from "../../store/actions/order";
-import Loader from "../../Components/Loader";
-import { showToast } from "../../utils/common";
+import { Divider } from "react-native-paper";
+import QRCode from "react-native-qrcode-svg";
 import { useTranslation } from "react-i18next";
+import RBSheet from "react-native-raw-bottom-sheet";
+import {CommonActions, useNavigation} from "@react-navigation/native";
 
-// create a component
+import Fonts from "../../Constants/fonts";
+import Colors from "../../Constants/Colors";
+import { Cart, Request } from "../../assets";
+import { showToast } from "../../utils/common";
+import FontSize from "../../Constants/FontSize";
+import Utilities from "../../utils/UtilityMethods";
+import CancelOrderId from "../../api/CancelOrderId";
+import GetOrderHistory from "../../api/GetOrderHistory";
+import {CommonContext} from "../../contexts/ContextProvider";
+import GeneralAPIWithEndPoint from "../../api/GeneralAPIWithEndPoint";
+import { hp, wp } from "../../utils/responsiveSizes";
+
+import Footer from "./components/Footer";
+import Loader from "../../Components/Loader";
+import BackHeader from "../../Components/Header/BackHeader";
+import SmallButton from "../../Components/Buttons/SmallButton";
+import CustomCheckBox from "../../Components/Inputs/CheckBoxCustom";
+import CancelOrderModel from "../../Components/Modal/CancelOrderModel";
+
 const OrderDetails = ({ route }) => {
-  const navigation = useNavigation();
-  const { t } = useTranslation();
-  const [order, setOrder] = useState(null);
-  const [time, setTime] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [reload, setReload] = useState(true);
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
+    const order_id      = route?.params?.order_id;
+    const branch_id     = route?.params?.branch_id;
+    const isOnDemand     = route?.params?.isOnDemand;
+    const {userProfile, onDemandOrder, setOnDemandOrder} = useContext(CommonContext);
 
-  useEffect(() => {
-    setOrder(route?.params?.order);
-    setLoading(false);
-  }, [reload, route]);
+    const refRBSheet = useRef();
+    const { t } = useTranslation();
+    const navigation = useNavigation();
+    const selectReasonerror = "Please select the reason";
 
-  useEffect(() => {
-    if (order?.status === "accepted") {
-      var countDownDate = moment().add(25, "minutes");
-      let total_diff = countDownDate.diff(moment());
+    const [order, setOrder] = useState(null);
+    const [branch, setBranch] = useState(null);
+    const [vehicle, setVehicle] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [modalCart, setmodalCart] = useState(false);
+    const [country, setCountry] = useState(false);
+    const [reasonerror, setReasonError] = useState(false);
 
-      var x = setInterval(function () {
-        let diff = countDownDate.diff(moment());
-        const _progress =
-          (moment.duration(diff).asSeconds() /
-            moment.duration(total_diff).asSeconds()) *
-          100;
-        setProgress(100 - _progress);
 
-        if (diff <= 0) {
-          clearInterval(x);
-        } else setTime(moment.utc(diff).format("mm:ss"));
-      }, 1000);
+    useEffect(() => {
+        getData();
+    }, []);
+
+    const getData = () => {
+        setLoading(true);
+        console.log('user ID ===>> ', userProfile?.id);
+        console.log('Order ID ===>> ', order_id);
+        console.log('Branh ID ===>> ', branch_id);
+        getOrderDetail();
+        getBranchDetail();
+    };
+
+    const getOrderDetail = () =>{
+        GetOrderHistory({profileID:userProfile?.id, orderID:order_id}).then(({ success, response }) => {
+            console.log('Order Detail ===>> ', response);
+            if (success) {
+                setOrder(response[0]);
+                getVehicle(response[0]?.vehicle_id?.[0]);
+            } else {
+                setLoading(false);
+                showToast("Error", response, "error");
+            }
+        });
     }
-  }, [order]);
-  // console.log("order ======>", order);
-  const buttonPressed = (status) => {
-    setLoading(true);
-    dispatch(changeOrderStatus({ id: order?._id, status })).then((res) => {
-      setLoading(false);
-      console.log(res);
-      if (!res?.payload?.error) {
-        setOrder(res?.payload?.data);
-        if (res?.payload?.data?.status === "cancelled") {
-          navigation.navigate("Scan");
-        } else if (res?.payload?.data?.status === "completed") {
-          navigation.navigate("Congratulations");
-        }
-        // setReload(!reload);
-      }
-    });
-  };
 
-  return (
-    <View style={styles.container}>
-      {order ? (
-        <>
-          <BackHeader
-            rightIcon={Cart}
-            title={order?.branch?.title || "Auto Master"}
-          />
-          <ScrollView
-            style={styles.paddedContent}
-            contentContainerStyle={styles.contentContainer}
-          >
-            {order?.status === "accepted" && (
-              <View style={styles.timerContainer}>
-                <View>
-                  <AnimatedCircularProgress
-                    size={170}
-                    width={15}
-                    fill={progress}
-                    rotation={0}
-                    tintColor={BLUE}
-                    // onAnimationComplete={(res) =>
-                    // }
-                    backgroundColor={LIGHT_GRAY}
-                  />
-                  <Text style={styles.time}>{time}</Text>
-                </View>
-              </View>
-            )}
-            <BoxLayout title={t("order.Job Order")}>
-              <View style={styles.row}>
-                <Text style={styles.leftTitle}>{t("order.Job Order #")}</Text>
-                <Text style={styles.rightValue}>{order?.order_id}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.leftTitle}>{t("order.Time & Date")}</Text>
-                <Text style={styles.rightValue}>
-                  {moment(order?.created_at).format("D/MM/YYYY")}
-                </Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.leftTitle}>{t("order.Order Status")}</Text>
-                <Text style={styles.rightValue}>
-                  {order?.status || "Incomplete"}
-                </Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.leftTitle}>
-                  {t("order.Payment Method")}
-                </Text>
-                <Text style={styles.rightValue}>
-                  {" "}
-                  {order?.payment_method || "Cash"}
-                </Text>
-              </View>
-              <Text style={styles.centerTitle}>
-                {t("order.Vehicles Details")}
-              </Text>
+    const getBranchDetail = () => {
+        const body = {
+            params: {
+                model: "res.partner",
+                method: "search_read",
+                args: [[["id", "=",branch_id]]],
+                kwargs: {context:{"lang":"ar_001"},fields: ["name", "services" ,"active","longitude","latitude","opening_hours"]}
+            }
+        };
+        GeneralAPIWithEndPoint("/dataset/call_kw/", body).then((response) => {
+            setLoading(false);
+            setBranch(response[0]);
+        });
+    }
 
-              <View style={styles.rowContent}>
-                <View style={styles.subView}>
-                  <Text style={styles.subTitle}>{t("order.Brand")}</Text>
-                  <Text style={styles.subValue}>
-                    {order?.vehicle?.model || "Corolla"}
-                  </Text>
+    const getVehicle = (vehicleID) => {
+        const body = {
+            params: {
+                model: "gorex.vehicle",
+                method: "search_read",
+                args: [[["customer", "=", userProfile?.id]]],
+                kwargs: {fields: ["manufacturer","vehicle_model", "name"]}
+            }
+        };
+        GeneralAPIWithEndPoint("/dataset/call_kw/", body).then((response) => {
+            setLoading(false);
+            const vehicle = response.find(vehicle => vehicle?.id === vehicleID);
+            if (vehicle?.manufacturer && vehicle?.vehicle_model) {
+                const vehicleDisplayName = `${vehicle?.manufacturer[1]}, ${vehicle?.vehicle_model[1]}`
+                setVehicle(vehicleDisplayName);
+            }
+        });
+    };
+
+    const navigateToGoogleMaps = () =>{
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${branch?.latitude},${branch?.longitude}&travelmode=driving`;
+        Linking.openURL(url);
+    }
+
+    return (
+        <View style={styles.container}>
+            <BackHeader title={branch?branch.name:'Order Detail'} leftPress={()=>{
+                navigation.navigate('OrderHistory');
+                setOnDemandOrder(null);
+            }} rightTitle={"Support"} rightIcon={Cart} RightPress={() => {navigation.navigate("GorexSupport");}}/>
+            <ScrollView contentContainerStyle={styles.contentContainer} style={styles.paddedContent}>
+                <View style={styles.barcodeContainer}>
+                    <QRCode size={200} value={`${order?.id}`} />
+                    <Text style={styles.heading2}>Upon arrival, please show this QR code to the operator.</Text>
                 </View>
-                <View style={styles.subView}>
-                  <Text style={styles.subTitle}>{t("order.Type")}</Text>
-                  <Text style={styles.subValue}>
-                    {order?.vehicle?.type || "Suv"}
-                  </Text>
+                <Divider style={{ margin: hp(2) }} />
+                <View style={styles.row}>
+                    <Text style={styles.leftTitle}>{t("order.Job Order #")}</Text>
+                    <Text style={styles.rightValue}>{order?.sequence_no}</Text>
                 </View>
-              </View>
-              <View style={styles.rowContent}>
-                <View style={styles.subView}>
-                  <Text style={styles.subTitle}>{t("order.Year")}</Text>
-                  <Text style={styles.subValue}>
-                    {" "}
-                    {order?.vehicle?.model || "2021"}
-                  </Text>
-                </View>
-                <View style={styles.subView}>
-                  <Text style={styles.subTitle}>{t("order.Number Plate")}</Text>
-                  <Text style={styles.subValue}>
-                    {" "}
-                    {order?.vehicle?.plate_number || "UY90009876"}
-                  </Text>
-                </View>
-              </View>
-            </BoxLayout>
-            <BoxLayout title={t("order.Service Provider Details")}>
-              <View style={styles.row}>
-                <Text style={styles.leftTitle}>{t("order.Name")}</Text>
-                <Text style={styles.rightValue}>
-                  {order?.service_provider?.profile?.name || "Auto Master"}
-                </Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.leftTitle}>{t("order.City")}</Text>
-                <Text style={styles.rightValue}>
-                  {" "}
-                  {order?.branch?.city || "Lahore"}
-                </Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.leftTitle}>{t("order.Location")}</Text>
-                <Text style={styles.rightValue}>
-                  {" "}
-                  {order?.branch?.district || "Shop #20"}
-                </Text>
-              </View>
-            </BoxLayout>
-            <BoxLayout title={t("order.Order Details")}>
-              {order?.items == null ? null : (
-                <Text style={styles.heading}>{t("Products")}</Text>
-              )}
-              <FlatList
-                data={order?.items}
-                renderItem={({ item }) => (
-                  <View style={styles.rowContainer}>
-                    <Text style={styles.title}>
-                      {item?.item} X {item?.quantity}
+                <View style={styles.row}>
+                    <Text style={styles.leftTitle}>{t("order.Order Status")}</Text>
+                    <Text style={[styles.incomplete, {color: order?.status === "cancel" ? Colors.RED : order?.status === "draft" ? Colors.OLIVE : Colors.DARKERGREEN,},]}>
+                        {(order?.status === "draft" || order?.status === "order_placed" || order?.status === "order_accepted") ? t('order_history.Incompleted') : order?.status}
                     </Text>
-                    <View style={styles.rightView}>
-                      <Text style={styles.price}>
-                        {item?.quantity * item?.unit_price} SAR
-                      </Text>
+                </View>
+                <View style={styles.row}>
+                    <Text style={styles.leftTitle}>{t("order.Payment Method")}</Text>
+                    <Text style={styles.rightValue}>{order?.payment_method || "Cash"}</Text>
+                </View>
+                <View style={styles.row}>
+                    <Text style={styles.leftTitle}>{t("Order Amount")}</Text>
+                    <Text style={styles.rightValue}> {"SAR " + order?.sub_total}</Text>
+                </View>
+                <TouchableOpacity style={styles.row} onPress={() => navigation.navigate("ViewPayment", {id: order?.id})}>
+                    <Text style={styles.leftTitle}>{t("Order List")}</Text>
+                    <Text style={styles.viewlist}> {"View"}</Text>
+                </TouchableOpacity>
+                <View style={styles.row}>
+                    <Text style={styles.leftTitle}>{t("order.Vehicle")}</Text>
+                    <Text style={styles.rightValue}>{vehicle}</Text>
+                </View>
+                <CancelOrderModel
+                    onPress={async () => {
+                        setmodalCart(false);
+                        refRBSheet.current.open();
+                    }}
+                    setmodalCart={setmodalCart}
+                    modalCart={modalCart}
+                />
+                {(order?.on_demand && order?.status === "order_placed") || (!order?.on_demand && ( order?.status === "draft" || order?.status === "order_placed" || order?.status === "order_accepted")) ? (
+                    <SmallButton title={t("Cancel Order")} onPress={() => setmodalCart(true)} backgroundColor={Colors.RED}/>
+                ) : null}
+            </ScrollView>
+            <RBSheet
+                height={hp(450)}
+                ref={refRBSheet}
+                closeOnDragDown={true}
+                closeOnPressMask={false}
+                customStyles={{
+                    container: {
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                    },
+                    wrapper: {
+                        backgroundColor: "#17151FB3",
+                    },
+                    draggableIcon: {
+                        backgroundColor: "#000",
+                    },
+                }}
+            >
+                <TouchableOpacity style={{position: "absolute", top: 10, right: 20,}} onPress={() => {refRBSheet.current.close();}}>
+                    <Text style={{color: Colors.BLACK, fontFamily: Fonts.PoppinsMedium, ...FontSize.rfs15,}}>Cancel</Text>
+                </TouchableOpacity>
+                <View>
+                    <View style={{ marginLeft: 20, marginTop: 15 }}>
+                        <CustomCheckBox
+                            checkstyle={{ width: 20, height: 20 }}
+                            setChecked={() => setCountry(`Service provider is far away from me`)}
+                            checked={country === `Service provider is far away from me`}
+                            hideRight
+                            title="Service provider is far away from me"
+                            titlestyle={{marginLeft: 10, color: Colors.BLACK, ...FontSize.rfs16, fontFamily: Fonts.LexendSemiBold,}}
+                        />
                     </View>
-                  </View>
-                )}
-              />
-              {order?.services == null ? null : (
-                <Text style={styles.heading}>{t("order.Services")}</Text>
-              )}
-              <FlatList
-                data={order?.services}
-                renderItem={({ item }) => (
-                  <View style={styles.rowContainer}>
-                    <Text style={styles.title}>{item?.service}</Text>
-                    <View style={styles.rightView}>
-                      <Text style={styles.price}>
-                        {item?.quantity * item?.unit_price} SAR
-                      </Text>
+                </View>
+                <View style={{ marginLeft: 20 }}>
+                    <CustomCheckBox
+                        checkstyle={{ width: 20, height: 20 }}
+                        setChecked={() => setCountry(`I am out of Cash`)}
+                        checked={country === `I am out of Cash`}
+                        hideRight
+                        title="I am out of Cash"
+                        titlestyle={{marginLeft: 10, color: Colors.BLACK, ...FontSize.rfs16, fontFamily: Fonts.LexendSemiBold,}}
+                    />
+                </View>
+                <View style={{ marginLeft: 20 }}>
+                    <CustomCheckBox
+                        checkstyle={{ width: 20, height: 20 }}
+                        setChecked={() => setCountry(`I can't find the address`)}
+                        checked={country === `I can't find the address`}
+                        hideRight
+                        title="I can't find the address"
+                        titlestyle={{
+                            marginLeft: 10,
+                            color: Colors.BLACK,
+                            ...FontSize.rfs16,
+                            fontFamily: Fonts.LexendSemiBold,
+                        }}
+                    />
+                </View>
+                <View style={{ marginLeft: 20 }}>
+                    <CustomCheckBox
+                        checkstyle={{ width: 20, height: 20 }}
+                        setChecked={() => setCountry(`other`)}
+                        checked={country === `other`}
+                        hideRight
+                        title="other"
+                        titlestyle={{
+                            marginLeft: 10,
+                            color: Colors.BLACK,
+                            ...FontSize.rfs16,
+                            fontFamily: Fonts.LexendSemiBold,
+                        }}
+                    />
+                </View>
+                <View>
+                    <Text style={{marginBottom: 10, color: Colors.RED, textAlign: "center", ...FontSize.rfs16, fontFamily: Fonts.LexendMedium,}}>{reasonerror}</Text>
+                </View>
+                <View style={{ flexDirection: "row" }}>
+                    <View style={{ marginLeft: 20 }}>
+                        <Text style={{marginBottom: 10, color: Colors.BLACK, ...FontSize.rfs16, fontFamily: Fonts.LexendMedium,}}>Talk to support?</Text>
                     </View>
-                  </View>
-                )}
-              />
-            </BoxLayout>
-          </ScrollView>
-          <BottomBar
-            onPress={() =>
-              buttonPressed(
-                order?.status === "accepted" ? "completed" : "accepted",
-                order?._id
-              )
-            }
-            onCancelPress={() => buttonPressed("cancelled")}
-            showButton={order?.status !== "completed"}
-            btnTitle={
-              order?.status === "accepted"
-                ? t("scan.Complete Order")
-                : t("scan.Accept Order")
-            }
-            cancelBtnTitle={"Cancel Order"}
-            total={order?.total_price}
-            vat={order?.vat}
-            order={order?.id}
-          />
-        </>
-      ) : null}
-      <Loader visible={loading} />
-    </View>
-  );
+                    <Divider style={{width: "100%", alignSelf: "center", marginBottom: 5, marginLeft: 5,}}/>
+                </View>
+                <TouchableOpacity
+                    style={styles.sprt}
+                    onPress={() => {
+                        refRBSheet.current.close();
+                        navigation.navigate("GorexSupport", {order: order});
+                    }}
+                >
+                    <View style={{flexDirection: "row", fontWeight: "bold", alignItems: "center", justifyContent: "center",}}>
+                        <Image style={{width:wp(20), height:wp(20), tintColor:Colors.WHITE}}  source={Request} />
+                        <Text
+                            style={{
+                                color: "black",
+                                fontWeight: "bold",
+                                textAlign: "center",
+                                alignSelf: "center",
+                                fontFamily: Fonts.LexendBold,
+                                ...FontSize.rfs14,
+                                marginBottom: 5,
+                                marginLeft: 5,
+                            }}
+                        >Request Support
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.btn}
+                    onPress={() => {
+                        if (!country) {
+                            setReasonError(selectReasonerror);
+                            return false;
+                        }
+                        refRBSheet.current.close();
+                        CancelOrderId(order?.id, country?.toString()).then(
+                            ({ success, response }) => {
+                                if (success) {
+                                    showToast("Order cancelled", response, "success");
+                                } else {
+                                    showToast("Order not cancelled", response, "error");
+                                }
+                            }
+                        );
+                        navigation.navigate("OrderHistory");
+                    }}
+                >
+                    <Text style={styles.titless}>Confirm & Cancel</Text>
+                </TouchableOpacity>
+            </RBSheet>
+            <Footer
+                title={t('order_history.again')}
+                // title={(order?.status === "draft" || order?.status === "order_placed" || order?.status === "order_accepted") ? "Ready to navigate?" : "Order Again?"}
+                onPress={async () => {
+                    const resetAction = CommonActions.reset({
+                        index: 0,
+                        routes: [{ name: "Dashboard" }],
+                    });
+                    navigation.dispatch(resetAction);
+                    // navigation.navigate("Dashboard");
+                    // if ((order?.status === "draft" || order?.status === "order_placed" || order?.status === "order_accepted")) {
+                    //     // navigation.navigate("Congratulations", {title: order?.branch?.title, totalprice: order?.total_price,});
+                    //     navigateToGoogleMaps();
+                    // } else {
+                    //     navigation.navigate("PaymentMethod", {title: branch?.title, id, branch,});
+                    // }
+                }}
+            />
+
+            <Loader visible={loading} />
+        </View>
+    );
 };
 
-// define your styles
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: WHITE,
-  },
-  paddedContent: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexGrow: 1,
-    paddingHorizontal: wp(14),
-  },
-  heading: {
-    fontSize: responsiveFontSize(16),
-    textAlign: "left",
-    fontFamily: SFProDisplayBold,
-    color: BLACK,
-    marginBottom: hp(11),
-  },
-  title: {
-    fontSize: responsiveFontSize(16),
-    textAlign: "left",
-    fontFamily: SFProDisplayRegular,
-    color: BLACK,
-    marginBottom: hp(11),
-  },
-  rowContainer: {
-    marginLeft: wp(18),
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  price: {
-    fontSize: responsiveFontSize(16),
-    textAlign: "left",
-    fontFamily: SFProDisplayRegular,
-    color: GREEN,
-    marginRight: wp(18),
-  },
-  rightView: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  barcodeContainer: {
-    marginTop: hp(25),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 7,
-  },
-  leftTitle: {
-    fontSize: responsiveFontSize(16),
-    textAlign: "left",
-    fontFamily: SFProDisplayBold,
-    color: BLACK,
-  },
-  rightValue: {
-    fontSize: responsiveFontSize(16),
-    textAlign: "left",
-    fontFamily: SFProDisplayBold,
-    color: GREEN,
-  },
-  centerTitle: {
-    fontSize: responsiveFontSize(16),
-    textAlign: "left",
-    fontFamily: SFProDisplayBold,
-    color: BLACK,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: hp(15),
-  },
-  subView: {
-    flexDirection: "row",
-  },
-  subTitle: {
-    fontSize: responsiveFontSize(12),
-    textAlign: "left",
-    fontFamily: SFProDisplaySemiBold,
-    color: BLACK,
-    marginRight: wp(20),
-  },
-  subValue: {
-    fontSize: responsiveFontSize(11),
-    textAlign: "left",
-    fontFamily: SFProDisplaySemiBold,
-    color: BLACK_OPAC,
-    marginRight: wp(20),
-  },
-  rowContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: hp(10),
-  },
-  time: {
-    fontSize: responsiveFontSize(46),
-    textAlign: "left",
-    fontFamily: PoppinsMedium,
-    position: "absolute",
-    top: wp(55),
-    left: wp(33),
-  },
-  timerContainer: {
-    marginVertical: wp(50),
-
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    container: {
+        flex: 1,
+        backgroundColor: Colors.WHITE,
+    },
+    paddedContent: {
+        flex: 1,
+    },
+    contentContainer: {
+        flexGrow: 1,
+        paddingHorizontal: wp(14),
+    },
+    bottombar: {
+        height: 40,
+        backgroundColor: Colors.DARKERGREEN,
+        justifyContent: "space-between",
+    },
+    heading: {
+        ...FontSize.rfs16,
+        fontFamily: Fonts.LexendBold,
+        textAlign: "left",
+        color: Colors.BLACK,
+        marginBottom: hp(11),
+    },
+    heading2: {
+        ...FontSize.rfs18,
+        fontFamily: Fonts.LexendMedium,
+        textAlign: "center",
+        color: Colors.BLACK,
+        width: "70%",
+        paddingVertical: Utilities.hp(3),
+    },
+    viewlist: {
+        ...FontSize.rfs14,
+        fontFamily: Fonts.LexendBold,
+        textAlign: "left",
+        color: Colors.DARKERGREEN,
+        textDecorationLine: "underline",
+    },
+    title: {
+        ...FontSize.rfs16,
+        fontFamily: Fonts.LexendRegular,
+        textAlign: "left",
+        color: Colors.BLACK,
+        marginBottom: hp(11),
+    },
+    rowContainer: {
+        marginLeft: wp(18),
+        flexDirection: "row",
+        justifyContent: "space-between",
+    },
+    price: {
+        ...FontSize.rfs16,
+        fontFamily: Fonts.LexendRegular,
+        textAlign: "left",
+        color: Colors.GREEN,
+        marginRight: wp(18),
+    },
+    rightView: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    barcodeContainer: {
+        marginTop: hp(25),
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: Utilities.hp(1.2),
+        paddingVertical: Utilities.hp(0.3),
+    },
+    leftTitle: {
+        ...FontSize.rfs18,
+        fontFamily: Fonts.LexendBold,
+        textAlign: "left",
+        color: Colors.BLACK,
+    },
+    rightValue: {
+        ...FontSize.rfs14,
+        fontFamily: Fonts.LexendMedium,
+        color: "#B8B9C1",
+    },
+    incomplete: {
+        ...FontSize.rfs14,
+        fontFamily: Fonts.LexendBold,
+        textAlign: "left",
+        color: Colors.ORANGE,
+        textTransform: "capitalize",
+    },
+    centerTitle: {
+        ...FontSize.rfs16,
+        fontFamily: Fonts.LexendBold,
+        color: Colors.BLACK,
+        textAlign: "center",
+        marginTop: 8,
+        marginBottom: hp(15),
+    },
+    subView: {
+        flexDirection: "row",
+        width: "48%",
+        justifyContent: "space-between",
+    },
+    subTitle: {
+        ...FontSize.rfs12,
+        fontFamily: Fonts.SFProDisplaySemiBold,
+        textAlign: "left",
+        color: Colors.BLACK,
+        marginRight: wp(20),
+    },
+    subValue: {
+        ...FontSize.rfs11,
+        fontFamily: Fonts.SFProDisplaySemiBold,
+        textAlign: "left",
+        color: Colors.BLACK_OPAC,
+        marginRight: wp(20),
+    },
+    rowContent: {
+        flexDirection: "row",
+        marginBottom: hp(10),
+    },
+    titless: {
+        color: Colors.WHITE,
+        fontFamily: Fonts.LexendBold,
+        textAlign: "left",
+        ...FontSize.rfs14,
+    },
+    btn: {
+        alignItems: "center",
+        backgroundColor: "#FF2C3C",
+        borderRadius: 5,
+        height: hp(60),
+        marginBottom: 10,
+        justifyContent: "center",
+        width: wp(330),
+        alignSelf: "center",
+        top: 0,
+    },
+    sprt: {
+        alignItems: "center",
+        backgroundColor: Colors.ORANGE,
+        borderRadius: 30,
+        height: hp(60),
+        marginBottom: 10,
+        justifyContent: "center",
+        width: wp(330),
+        alignSelf: "center",
+        top: 0,
+    },
 });
 
-//make this component available to the app
 export default OrderDetails;

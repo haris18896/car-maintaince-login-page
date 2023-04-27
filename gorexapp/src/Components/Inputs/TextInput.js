@@ -1,252 +1,289 @@
-//import liraries
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Image,
+    View,
+    Text,
+    TextInput,
+    StyleSheet,
+    TouchableOpacity,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
 import moment from "moment";
-import { ArrowBack, Cart, Down, Eye, EyeClose } from "../../assets";
-import { BLACK, BLUE, GREY } from "../../constants/colors";
-import { SFProDisplayMedium } from "../../constants/fonts";
-import { hp, responsiveFontSize, wp } from "../../utils/responsiveSizes";
+import { GreyArrowDown, GreyEye, GreenEye, WhiteEye } from "../../assets";
+import Colors from "../../Constants/Colors";
+import Fonts from "../../Constants/fonts";
+import { hp, wp } from "../../utils/responsiveSizes";
 import SelectOptions from "./SelectOptions";
 import { useTranslation } from "react-i18next";
+import FontSize from "../../Constants/FontSize";
+import Utilities from "../../utils/UtilityMethods";
 
-// create a component
 const InputText = ({
-  title,
-  secured = false,
-  select,
-  date,
-  options,
-  changeHandler,
-  defaultValue,
-  disabled,
-  keyboard,
-  type,
-  error,
-  errorMessage,
-  titleUp,
-}) => {
-  const [text, setText] = useState("");
-  const [showSelect, setShowSelect] = useState(false);
-  const [_date, setDate] = useState(new Date());
-  const [open, setOpen] = useState(false);
-  const [isPasswordSecure, setIsPasswordSecure] = useState(secured);
-  const selectOption = (option) => {
-    setShowSelect(false);
-    changeHandler(option?.value);
-    setText(option?.label);
-  };
+                       title,
+                       login,
+                       secured = false,
+                       select,
+                       date,
+                       options,
+                       showError,
+                       changeHandler,
+                       name,
+                       defaultValue,
+                       row = false,
+                       disabled,
+                       keyboard,
+                       type,
+                       error,
+                       forceTitle,
+                       minDate = null,
+                       maxDate = new Date(Date.now()),
+                       onFocus = () => {},
+                       placeholder,
+                       errorMessage,
+                       titleUp,
+                       returnKeyType = "default",
+                       dontHaveTitle = true,
+                   }) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const [text, setText] = useState("");
+    const [showSelect, setShowSelect] = useState(false);
+    const [_date, setDate] = useState("");
+    const [open, setOpen] = useState(false);
+    const [isPasswordSecure, setIsPasswordSecure] = useState(secured);
+    const selectOption = (option) => {
+        setShowSelect(false);
+        changeHandler(option?.value);
+        setText(option?.label);
+    };
+    const { t, i18n } = useTranslation();
+    const isRTL = i18n.language === "ar";
 
-  useEffect(() => {
-    if (defaultValue) setText(defaultValue);
-  }, [defaultValue]);
-  const { i18n } = useTranslation();
-  const isRTL = i18n.language === "ar";
+    useEffect(() => {
+        if (defaultValue) setText(defaultValue);
+    }, [defaultValue]);
 
   return (
-    <>
-      <TouchableOpacity
-        onPress={() => {
-          if (select) {
-            setShowSelect(!showSelect);
-          } else if (date) setOpen(true);
-        }}
-        disabled={(!select && !date) || disabled}
-        style={
-          type === "textarea" ? styles.textareaContainer : styles.container
-        }
-      >
-        {type !== "textarea" && (
-          <Text style={text ? styles.titleUp : styles.title}>{title}</Text>
-        )}
-        {select || date ? (
-          <View style={styles.selectInput}>
-            <Text style={styles.pickerText}>
-              {select ? text : text ? moment(text).format("DD/MM/YYYY") : ""}
-            </Text>
-            <Image style={styles.down} source={Down} />
-          </View>
-        ) : (
-          <>
-            <TextInput
-              value={text}
-              multiline={type === "textarea"}
-              onChangeText={(value) => {
-                setText(value);
-                changeHandler(value);
-              }}
-              placeholder={type === "textarea" ? title : ""}
-              style={[
-                type === "textarea" ? styles.textarea : styles.input,
-                { textAlign: isRTL ? "right" : "left" },
-              ]}
-              editable={disabled ? false : true}
-              secureTextEntry={isPasswordSecure}
-              keyboardType={keyboard ? keyboard : "default"}
-            />
+      <View style={{ marginTop: 15 }}>
+        <TouchableOpacity
+            onPress={() => {
+              if (select) {
+                setShowSelect(!showSelect);
+              } else if (date) setOpen(true);
+            }}
+            disabled={(!select && !date) || disabled}
+            style={[type === "textarea" ? styles.textareaContainer : styles.container, { width: "100%" }]}
+        >
+          {!login && dontHaveTitle && (
+            <View style={styles.inputLabelContainer}>
+              <Text style={styles.titleUpUpdate}>{title}</Text>
+            </View>
+          )}
+          {select || date ? (
+              <View style={[styles.selectInput]}>
 
-            {secured && (
-              <TouchableOpacity
-                style={styles.iconinput}
-                onPress={() => {
-                  setIsPasswordSecure((prev) => !prev);
-                }}
-              >
-                {isPasswordSecure ? (
-                  <Image
-                    resizeMode="contain"
-                    source={Eye}
-                    style={styles.eyestyling}
-                  />
+                        {!text ? (
+                            <Text style={[styles.textPlaceholder]}>{date ? "DD/MM/YYYY" : isRTL ? "يرجى الاختيار" : "Select " + title}</Text>
+                        ) : (
+                            <Text style={styles.textNormal}>{select ? text : text ? moment(text).format("DD/MM/YYYY") : ""}</Text>
+                        )}
+
+                        <GreyArrowDown height={hp(7.7)} width={wp(14)} />
+
+
+                    </View>
                 ) : (
-                  <Image
-                    resizeMode="contain"
-                    source={EyeClose}
-                    style={styles.eyestyling}
-                  />
-                  // <Eye width={25} height={25} />
-                  // <EyeClose width={25} height={25} />
+                    <View>
+                        <TextInput
+                            value={text}
+                            multiline={type === "textarea"}
+                            onChangeText={(value) => {
+                                setText(value);
+                                changeHandler(value);
+                            }}
+                            onBlur={() => setIsFocused(false)}
+                            onFocus={() => {
+                                setIsFocused(true);
+                                onFocus({ xmlName: name });
+                            }}
+                            returnKeyType={returnKeyType}
+                            placeholderTextColor={login ? Colors.WHITE : Colors.BLACK}
+                            placeholder={forceTitle ? title : isRTL ? "ادخل" + title : "Enter your " + title}
+                            style={[type === "textarea" ? styles.textarea : styles.input,
+                                login ? styles.login : styles.grey,
+                                {
+                                    width: "100%",
+                                    textAlign: isRTL ? "right" : "left",
+                                    borderWidth: isFocused || showError ? 1 : 0,
+                                    borderColor: showError
+                                        ? Colors.RED
+                                        : isFocused
+                                            ? Colors.DARKERGREEN
+                                            : null,
+                                },
+                            ]}
+                            editable={disabled ? false : true}
+                            secureTextEntry={isPasswordSecure}
+                            keyboardType={keyboard ? keyboard : "default"}
+                        />
+
+                        {secured && (
+                            <TouchableOpacity style={styles.iconinput} onPress={() => {
+                                setIsPasswordSecure((prev) => !prev);
+                            }}>
+                                {isPasswordSecure ? (
+                                    <GreyEye width={wp(22)} height={hp(15)} />
+                                ) : (
+                                    <GreenEye width={wp(22)} height={hp(15)} />
+                                )}
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 )}
-              </TouchableOpacity>
-            )}
-          </>
-        )}
-      </TouchableOpacity>
-      {error && (
+            </TouchableOpacity>
+            {/* {error && (
         <Text
           style={{
-            color: BLUE,
+            color: Colors.BLUE,
             marginTop: -10,
-            fontSize: responsiveFontSize(12),
+            ...FontSize.rfs12,
           }}
         >
           Field is Required!
         </Text>
-      )}
-      <View>
-        <SelectOptions
-          visible={showSelect}
-          options={options}
-          selectOption={selectOption}
-        />
+      )} */}
+            <View>
+                <SelectOptions
+                    visible={showSelect}
+                    options={options}
+                    error={error}
+                    selectOption={selectOption}
+                />
 
-        <DatePicker
-          modal
-          open={open}
-          date={_date}
-          mode="date"
-          minimumDate={new Date(Date.now())}
-          onConfirm={(_date) => {
-            setOpen(false);
-            setDate(_date);
-            setText(_date);
-            changeHandler(moment(_date).format("MM/DD/YYYY"));
-          }}
-          onCancel={() => {
-            setOpen(false);
-          }}
-        />
-      </View>
-    </>
-  );
+                <DatePicker
+                    modal
+                    open={open}
+                    date={new Date()}
+                    error={error}
+                    mode="date"
+                    minimumDate={minDate}
+                    maximumDate={new Date("2023-12-31")}
+                    onConfirm={(_date) => {
+                        setOpen(false);
+                        setDate(_date);
+                        setText(_date);
+                        changeHandler(moment(_date).format("MM/DD/YYYY"));
+                    }}
+                    onCancel={() => {
+                        setOpen(false);
+                    }}
+                />
+            </View>
+        </View>
+    );
 };
 
-// define your styles
 const styles = StyleSheet.create({
   container: {
-    height: hp(45),
     justifyContent: "flex-end",
-    marginBottom: hp(10),
   },
-
   iconinput: {
-    paddingHorizontal: 5,
-    bottom: 10,
-    position: "absolute",
-    right: 0,
-    height: 30,
-  },
-
-  eyestyling: {
-    width: wp(15),
-    tintColor: BLUE,
-    // height: hp(30),
-  },
-  textareaContainer: {
-    height: hp(174),
-    marginBottom: hp(10),
-  },
-  title: {
-    position: "absolute",
-    bottom: hp(4),
-    fontSize: responsiveFontSize(12),
-    color: GREY,
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-  },
-  titleUp: {
     position: "absolute",
     top: 0,
-    fontSize: responsiveFontSize(12),
-    color: GREY,
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
+    bottom: 0,
+    right: wp(20),
+    height: '100%',
+    justifyContent:'center',
   },
-  input: {
-    borderBottomColor: BLUE,
-    borderBottomWidth: 1,
-    // paddingHorizontal: wp(5),
-    paddingVertical: hp(4),
-
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-    fontSize: responsiveFontSize(15),
-    color: BLACK,
-    paddingLeft: 0,
+  inputLabelContainer: {
+    alignItems: 'flex-start'
   },
-  textarea: {
-    borderColor: BLUE,
-    borderWidth: 1,
-    paddingVertical: hp(4),
-    minHeight: hp(174),
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-    fontSize: responsiveFontSize(15),
-    // paddingLeft: 0,
-    textAlignVertical: "top",
-    paddingHorizontal: hp(12),
-    marginTop: hp(12),
-    borderRadius: 8,
-    color: BLACK,
+  textareaContainer: {
+    marginBottom: hp(10),
   },
-  selectInput: {
-    borderBottomColor: BLUE,
-    borderBottomWidth: 1,
-    // paddingHorizontal: wp(5),
-    paddingVertical: hp(4),
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-    fontSize: responsiveFontSize(15),
-  },
-  down: {
-    position: "absolute",
-    right: 0,
-    bottom: 10,
-  },
-  pickerText: {
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-    fontSize: responsiveFontSize(15),
-    color: BLACK,
-  },
+    title: {
+        marginLeft: Utilities.wp(5),
+        ...FontSize.rfs16,
+        color: Colors.BLACK,
+        fontFamily: Fonts.LexendRegular,
+    },
+    textPlaceholder:{
+        color: Colors.BLACK,
+        fontFamily: Fonts.LexendRegular,
+        ...FontSize.rfs16,
+    },
+    textNormal:{
+        color: Colors.BLACK,
+        fontFamily: Fonts.LexendRegular,
+        ...FontSize.rfs16,
+    },
+    titleUp: {
+        ...FontSize.rfs12,
+        color: Colors.GREY,
+        fontFamily: Fonts.LexendMedium,
+    },
+    titleUpUpdate: {
+        ...FontSize.rfs16,
+        color: Colors.BLACK,
+        fontFamily: Fonts.LexendMedium,
+        paddingBottom: 7,
+    },
+    input: {
+        paddingLeft: Utilities.hp(2.5),
+        color: Colors.BLACK,
+        marginHorizontal: wp(10),
+        height: hp(50),
+        borderRadius: hp(25),
+        marginLeft: "auto",
+        marginRight: "auto",
+        ...FontSize.rfs16,
+        textAlign: "left",
+        paddingHorizontal: hp(55),
+        paddingVertical: hp(5),
+        fontWeight: "normal",
+        fontFamily: Fonts.LexendRegular,
+    },
+    textarea: {
+        borderColor: Colors.BLUE,
+        borderWidth: 1,
+        paddingVertical: hp(4),
+        minHeight: hp(174),
+        fontFamily: Fonts.LexendMedium,
+        textAlign: "left",
+        ...FontSize.rfs15,
+        paddingHorizontal: hp(12),
+        marginTop: hp(12),
+        borderRadius: 8,
+        color: Colors.BLACK,
+    },
+    login: {
+        backgroundColor: Colors.BLACK,
+        color: Colors.WHITE,
+        borderWidth: 1,
+        borderColor: Colors.BLACK,
+        height: Utilities.wp(12),
+        fontFamily: Fonts.LexendLight,
+        fontWeight: "normal",
+    },
+    grey: {
+        backgroundColor: Colors.BORDER_GRAYLIGHTEST,
+        color: Colors.BLACK,
+        borderColor: Colors.BORDER_GRAYLIGHTEST,
+        width: wp(330),
+    },
+    selectInput: {
+        flexDirection:'row',
+        height: Utilities.hp(5),
+        borderRadius: Utilities.hp(2.5),
+        paddingHorizontal:Utilities.wp(5),
+        backgroundColor: Colors.BORDER_GRAYLIGHTEST,
+        alignItems:'center',
+        justifyContent: 'space-between',
+    },
+    selectInputText: {
+        textColor: 'red',
+        ...FontSize.rfs16,
+        paddingTop: Utilities.hp(1),
+        fontFamily: Fonts.LexendRegular,
+    },
 });
 
-//make this component available to the app
 export default InputText;

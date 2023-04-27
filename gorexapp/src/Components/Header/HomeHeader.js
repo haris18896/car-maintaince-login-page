@@ -1,55 +1,67 @@
-//import liraries
-import React, { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Logo, Menu } from '../../assets';
-import { BLUE, PLACEHOLDER_BLUE } from '../../constants/colors';
-// import SideMenu from '../../Screens/Dashboard/components/SideMenu';
-import { hp, wp } from '../../utils/responsiveSizes';
+import React from "react";
+import { View, StyleSheet, Image, TouchableOpacity } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
+import { AppLogo, WhiteGreenMenu } from "../../assets";
 
-// create a component
-const HomeHeader = ({ onPress, hideMenu }) => {
- return (
-  <View style={styles.container}>
-   {!hideMenu && (
-    <TouchableOpacity onPress={onPress} style={styles.menuButton}>
-     <Image style={styles.menu} source={Menu} />
-    </TouchableOpacity>
-   )}
-   <Image style={styles.logo} source={Logo} />
-   <View style={styles.placeholder} />
-  </View>
- );
+import { hp, wp } from "../../utils/responsiveSizes";
+import Utilities from "../../utils/UtilityMethods";
+
+const HomeHeader = ({ onPress }) => {
+  return (
+    <LinearGradient
+      colors={[
+        "rgba(0,0,0,1)",
+        "rgba(0,0,0,0.7)",
+        "rgba(0,0,0,0.6)",
+        "rgba(0,0,0,0.5)",
+        "rgba(0,0,0,0.4)",
+        "rgba(0,0,0,0.3)",
+        "rgba(0,0,0,0.2)",
+        "rgba(0,0,0,0.1)",
+        "rgba(0,0,0,0.0)",
+      ]}
+      style={styles.container}
+    >
+      <TouchableOpacity onPress={onPress} style={styles.menuButton}>
+        <WhiteGreenMenu width={wp(34.4)} height={hp(20.3)} />
+      </TouchableOpacity>
+      <AppLogo height={hp(40)} width={wp(150)} />
+      <View style={styles.placeholder} />
+    </LinearGradient>
+  );
 };
 
-// define your styles
 const styles = StyleSheet.create({
- container: {
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  backgroundColor: BLUE,
-  borderBottomLeftRadius: hp(20),
-  borderBottomRightRadius: hp(20),
-  height: hp(90),
-  flexDirection: 'row',
-  paddingHorizontal: 9,
- },
- logo: {
-  width: 100,
-  resizeMode: 'contain',
-  height: hp(25),
- },
- menuButton: {
-  height: wp(40),
-  width: wp(40),
-  backgroundColor: PLACEHOLDER_BLUE,
-  justifyContent: 'center',
-  alignItems: 'center',
-  borderRadius: wp(20),
- },
- placeholder: {
-  width: wp(40),
- },
+  container: {
+    justifyContent: "space-between",
+    alignItems: "center",
+
+    width: "100%",
+    height: hp(
+      Utilities.isIosDevice() && Utilities.hasNotch() ? Utilities.hp(18) : 90
+    ),
+    flexDirection: "row",
+    paddingHorizontal: 9,
+  },
+  logo: {
+    width: 120,
+    resizeMode: "contain",
+    height: hp(50),
+  },
+  menuButton: {
+    height: wp(50),
+    width: wp(50),
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: wp(20),
+  },
+  menu: {
+    height: hp(20),
+    width: wp(20),
+  },
+  placeholder: {
+    width: wp(40),
+  },
 });
 
-//make this component available to the app
 export default HomeHeader;

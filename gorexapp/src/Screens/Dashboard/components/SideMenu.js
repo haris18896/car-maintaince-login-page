@@ -1,230 +1,303 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { SafeAreaView, View, StyleSheet, TouchableOpacity, Modal, Text, Image, FlatList, Alert } from 'react-native';
-import { BLACK_OPAC, BLUE, MENU_GRAY, WHITE } from '../../../constants/colors';
+import React, {useContext} from "react";
+import PropTypes from "prop-types";
+import {View, Text, FlatList, Platform, StyleSheet, TouchableOpacity, Alert} from "react-native";
+import {CommonActions, DrawerActions} from "@react-navigation/native";
+
+import Colors from "../../../Constants/Colors";
 import {
-  About,
-  Calendar,
-  Contact,
-  Edit,
-  History,
-  Home,
-  Logo,
-  Logout,
-  Placeholder,
-  Profile,
-  Settings,
-  Vehicle
-} from '../../../assets';
-import { hp, responsiveFontSize, wp } from '../../../utils/responsiveSizes';
-import { SFProDisplayLight, SFProDisplayMedium } from '../../../constants/fonts';
-import { useNavigation } from '@react-navigation/native';
-import { removeToken, showToast } from '../../../utils/common';
-import { useDispatch, useSelector } from 'react-redux';
-import { deleteAccount, logout } from '../../../store/actions/auth';
-import { mediaUrl } from '../../../utils/defaultConfig';
-import { useTranslation } from 'react-i18next';
+  WhiteCross,
+  GreenHome,
+  GreenWallet,
+  GreenCar,
+  GreenOrderHistory,
+  GreenOffers,
+  GreenSettings,
+  OrangeGorexSupport,
+  OrangeGorexClub, Logout,
+} from "../../../assets";
+import { hp, wp } from "../../../utils/responsiveSizes";
+import Fonts from "../../../Constants/fonts";
+import { useNavigation } from "@react-navigation/native";
+import {CommonContext} from "../../../contexts/ContextProvider";
+import { useTranslation } from "react-i18next";
+import Utilities from "../../../utils/UtilityMethods";
+import FontSize from "../../../Constants/FontSize";
+import {removeCart, removePartnerId, removeProfileUpdate} from "../../../utils/common";
+import Footer from "../../ProductsAndServices/components/Footer";
 
-const SideMenu = props => {
-  const navigation = useNavigation();
+const SideMenu = () => {
+  const {userProfile, setUserProfile, setPartnerId, setSelectedBranch, setInCartOrder} = useContext(CommonContext);
   const { t } = useTranslation();
+  const navigation = useNavigation();
 
-  const dispatch = useDispatch();
-  const user = useSelector(state => state.auth.user);
+  const onClose = () => {
+    navigation.dispatch(DrawerActions.closeDrawer());
+  };
 
   const menu = [
     {
-      name: t('menu.Home'),
-      image: Home
-    },
-    // {
-    //  name: 'About Gorex',
-    //  image: About,
-    // },
-
-    {
-      name: t('menu.My Orders History'),
-      image: History,
-      screen: 'OrderHistory'
-    },
-
-    // {
-    //  name: 'Contact Us',
-    //  image: Contact,
-    // },
-    {
-      name: t('menu.Change Password'),
-      image: Settings,
-      screen: 'ChangePassword'
+      id:1,
+      name: t("menu.Home"),
+      screen: "DashboardScreen",
     },
     {
-      name: t('menu.Settings'),
-      image: Settings,
-      screen: 'ProfileUpdate'
+      id:2,
+      name: t("menu.Wallet"),
+      screen: "PaymentHistory",
     },
     {
-      name: t('menu.Logout'),
-      image: Logout,
-      screen: 'Logout'
-    }
+      id:3,
+      name: t("menu.My Vehicles"),
+      screen: "MyVehicles",
+    },
+    {
+      id:4,
+      name: t("menu.My Orders History"),
+      screen: "OrderHistory",
+    },
+    {
+      id:5,
+      name: t("menu.Offers"),
+      screen: "OfferData",
+    },
+    {
+      id:6,
+      name: t("menu.Settings"),
+      screen: "Setting",
+    },
+    {
+      id:7,
+      name: t("menu.Support"),
+      screen: "GorexSupport",
+    },
+    {
+      id:8,
+      name: t("menu.GorexClub"),
+      screen: "GorexCards",
+    },
   ];
-  return (
-    <Modal animationType='fade' transparent visible={props.visible} style={styles.container}>
-      <SafeAreaView style={styles.uperSafeArea} />
-      <View style={styles.leftRightContainer}>
-        <SafeAreaView style={styles.contenContainer}>
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Image style={styles.logo} source={Logo} />
-            </View>
-            <View style={styles.avatarContainer}>
-              <View>
-                <Image
-                  style={styles.avatar}
-                  source={user?.profile?.file ? { uri: `${mediaUrl}${user?.profile?.file}` } : Profile}
-                />
-                {/* <View style={styles.editContainer}>
-         <Image style={styles.edit} source={Edit} />
-        </View> */}
-              </View>
 
-              <View>
-                <Text style={styles.welcome}>{t('menu.Welcome')}</Text>
-                <Text style={styles.name}>{user?.profile?.name}</Text>
-              </View>
-            </View>
+  const gotoProfileScreen =()=>{
+    onClose();
+    navigation.navigate("ProfileUpdate");
+  }
+
+  const onPressSideMenuItem = (item) =>{
+    if (item.id === 9){
+      onPressLogoutButton();
+    }else {
+      onClose();
+      navigation.navigate(item?.screen);
+    }
+  }
+
+  const onPressLogoutButton = () =>{
+
+    Alert.alert(
+        "Confirm",
+        "Are you sure you want to logout?",
+        [
+          {
+            text: "Logout",
+            style: "destructive",
+            onPress: async () => {await logoutAction()}
+          },
+          {
+            text: "No",
+            onPress: () => {},
+          },
+        ]
+    );
+
+  }
+
+  const logoutAction = async () => {
+    const resetAction = CommonActions.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+    navigation.dispatch(resetAction);
+
+    setTimeout(async()=>{
+      setPartnerId(0);
+      setUserProfile(null);
+      setInCartOrder(null);
+      setSelectedBranch(null);
+
+      await removeProfileUpdate();
+      await removePartnerId();
+      await removeCart();
+    },1000)
+  };
+
+  const getImageFromItem = (item) =>{
+    switch (item.id) {
+      case 1:
+        return <GreenHome width={wp(26)} height={hp(27.75)} />
+      case 2:
+        return <GreenWallet width={wp(26)} height={hp(22.5)} />
+      case 3:
+        return <GreenCar width={wp(26)} height={hp(24.4)} />
+      case 4:
+        return <GreenOrderHistory width={wp(26)} height={wp(26)} />
+      case 5:
+        return <GreenOffers width={wp(26)} height={hp(30.5)} />
+      case 6:
+        return <GreenSettings width={wp(26)} height={wp(26)} />
+      case 7:
+        return <OrangeGorexSupport width={wp(26)} height={hp(28.5)} />
+      case 8:
+        return <OrangeGorexClub width={wp(26)} height={hp(26.5)} />
+      case 9:
+        return <Logout width={wp(26)} height={hp(26.5)} />
+      default:
+        return <GreenHome width={wp(26)} height={hp(27.75)} />
+    }
+  }
+
+  const getTopProfileView = () =>{
+    return (
+        <TouchableOpacity onPress={()=>{gotoProfileScreen();}} style={styles.avatarContainer}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarLetter}>{userProfile?.first_name?.charAt(0)}</Text>
           </View>
+          <View>
+            <Text style={styles.welcome}>{t("menu.hello")}</Text>
+            <Text style={styles.name}>{userProfile?.first_name}</Text>
+          </View>
+        </TouchableOpacity>
+    )
+  }
+
+  return (
+      <>
+        <View style={styles.drawer}>
+          <TouchableOpacity style={styles.logoContainer} onPress={() => onClose()}>
+            <WhiteCross width={wp(20.7)} height={wp(20.7)} />
+          </TouchableOpacity>
+
+          {getTopProfileView()}
+
           <View style={styles.menu}>
             <FlatList
-              data={menu}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (item?.screen === 'Logout') {
-                      removeToken();
-                      props.onClose();
-                      dispatch(logout());
-                    } else {
-                      navigation.navigate(item?.screen ? item?.screen : '');
-                      props.onClose();
-                    }
-                  }}
-                  style={styles.menuButton}
-                >
-                  <Image source={item?.image} />
-                  <Text style={styles.menuText}>{item?.name}</Text>
-                </TouchableOpacity>
-              )}
+                contentContainerStyle={{flexGrow: 1,}}
+                scrollEnabled={false}
+                showsVerticalScrollIndicator={false}
+                data={menu}
+                renderItem={({ item }) => (
+                    <TouchableOpacity style={styles.menuButton} onPress={() => {onPressSideMenuItem(item)}}>
+                      {getImageFromItem(item)}
+                      <Text style={[styles.menuText, item.id === 9&&{color: Colors.RED}]}>{item?.name}</Text>
+                    </TouchableOpacity>
+                )}
             />
           </View>
-          <View style={styles.versionContainer}>
-            <Text style={styles.version}>V 1.0.0</Text>
-          </View>
-        </SafeAreaView>
-        <TouchableOpacity onPress={() => props.onClose()} style={styles.rightSide} />
-      </View>
-    </Modal>
+        </View>
+        <Footer title={t("menu.Logout")} buttonStyle={{backgroundColor: Colors.ORANGE}} onPress={onPressLogoutButton} rightTitle={' '}/>
+      </>
   );
 };
+
 SideMenu.propTypes = {
   props: PropTypes.object,
-  visible: PropTypes.bool,
-  onClose: PropTypes.func
+  onClose: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
-  container: {
+  drawer: {
     flex: 1,
-    flexDirection: 'row'
-  },
-  header: {
-    backgroundColor: BLUE,
-    padding: wp(20)
+    backgroundColor: Colors.BLUE,
+    paddingLeft: wp(20),
+    paddingTop: Platform.OS === "ios" ? hp(30) : 0,
   },
   logoContainer: {
-    justifyContent: 'center',
-    alignItems: 'center'
+    marginTop: Utilities.wp(5),
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
   },
   logo: {
-    width: wp(100),
-    resizeMode: 'contain'
+    width: Utilities.wp(4),
+    resizeMode: "contain",
   },
   uperSafeArea: {
-    backgroundColor: BLUE,
-    width: '85%'
-  },
-  contenContainer: {
-    backgroundColor: WHITE,
-
-    width: '85%'
+    backgroundColor: Colors.BLACK_OPAC,
+    width: "100%",
   },
   leftRightContainer: {
-    flexDirection: 'row',
-    flex: 1
+    flexDirection: "row",
+    flex: 1,
   },
   rightSide: {
-    backgroundColor: BLACK_OPAC,
-    flex: 1
+    backgroundColor: Colors.BLACK_OPAC,
+    flex: 1,
   },
   avatarContainer: {
-    flexDirection: 'row',
-    marginTop: hp(20)
+    flexDirection: "row",
+    marginTop: hp(30),
   },
   avatar: {
-    width: wp(58),
-    height: wp(58),
-    borderRadius: wp(28),
-    marginRight: 9
+    height: Utilities.hp(5),
+    width: Utilities.hp(5),
+    backgroundColor: Colors.WHITE,
+    borderRadius: Utilities.hp(1),
+    justifyContent: "center",
+    alignItems: "center",
   },
-  edit: {
-    width: 10,
-    height: 10
+
+  avatarLetter: {
+    fontFamily: Fonts.GloryBold,
+    ...FontSize.rfs24,
+    color: Colors.DARKERGREEN,
   },
-  editContainer: {
-    bottom: 5,
-    right: 5,
-    position: 'absolute',
-    backgroundColor: WHITE,
-    padding: 5,
-    borderRadius: 10
-  },
+
   welcome: {
-    textAlign: 'left',
-    fontFamily: SFProDisplayLight,
-    fontSize: responsiveFontSize(18),
-    color: WHITE
+    fontFamily: Fonts.LexendMedium,
+    textAlign: "left",
+    ...FontSize.rfs14,
+    color: Colors.WHITE,
+    marginLeft: 10,
   },
   name: {
-    textAlign: 'left',
-    fontFamily: SFProDisplayMedium,
-    fontSize: responsiveFontSize(18),
-    color: WHITE,
-    marginTop: hp(10)
+    fontFamily: Fonts.LexendBold,
+    textAlign: "left",
+    ...FontSize.rfs20,
+    color: Colors.WHITE,
+    marginTop: Utilities.hp(0.5),
+    marginLeft: 10,
   },
   menu: {
-    padding: wp(25)
+    marginTop: Utilities.hp(5),
   },
   menuButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(30)
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: hp(30),
+  },
+  drawerIcon: {
+    width: Utilities.wp(5),
+    paddingVertical: Utilities.hp(2.7),
   },
   menuText: {
-    textAlign: 'left',
-    fontFamily: SFProDisplayMedium,
-    fontSize: responsiveFontSize(14),
-    color: MENU_GRAY,
-    marginLeft: wp(20)
+    fontFamily: Fonts.LexendMedium,
+    textAlign: "left",
+    ...FontSize.rfs14,
+    color: Colors.WHITE,
+    marginLeft: Utilities.hp(4),
   },
   version: {
-    fontSize: responsiveFontSize(14),
-    textAlign: 'left',
-    fontFamily: SFProDisplayMedium
+    ...FontSize.rfs14,
+    fontFamily: Fonts.LexendMedium,
+    textAlign: "left",
+    color: Colors.WHITE,
+    marginLeft: Utilities.hp(2),
+    alignSelf: "center",
   },
   versionContainer: {
-    justifyContent: 'center',
-    alignItems: 'center'
-  }
+    marginTop: hp(50),
+    alignItems: "center",
+    alignSelf: "center",
+    marginLeft: Utilities.hp(4),
+  },
 });
 
 export default SideMenu;

@@ -1,216 +1,220 @@
-//import liraries
-import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, Platform } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { useDispatch } from 'react-redux';
-import FullButton from '../../Components/Buttons/FullButton';
-import Header from '../../Components/Header/Header';
+import React, {useContext, useEffect, useState} from "react";
+import {View, Text, Platform, StatusBar, StyleSheet, ScrollView, TouchableOpacity} from "react-native";
 
-import jwt from 'jwt-decode'; // import dependency
+import { useTranslation } from "react-i18next";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 
-import { BLUE, GREY_TEXT, WHITE } from '../../constants/colors';
-import { PoppinsRegular, SFProDisplayMedium } from '../../constants/fonts';
-import { loginAction, loginForm } from '../../store/actions/auth';
-import { setToken, setUser } from '../../utils/common';
-import { hp, responsiveFontSize, wp } from '../../utils/responsiveSizes';
-import FormElement from '../../Components/FormEelement';
-import Loader from '../../Components/Loader';
-import { useTranslation } from 'react-i18next';
+import { AppLogo } from "../../assets";
+import { SignIn } from "../../api/CallAPI";
+import Colors from "../../Constants/Colors";
+import { KSA } from "../../Constants/country";
+import FontSize from "../../Constants/FontSize";
+import FontFamily from "../../Constants/FontFamily";
+import { hp, wp } from "../../utils/responsiveSizes";
+import {CommonContext} from "../../contexts/ContextProvider";
+import {showToast,  savePartnerId} from "../../utils/common";
 
-// create a component
-const Login = ({ route }) => {
- const navigation = useNavigation();
- const isCustomer = route?.params?.customer;
- const dispatch = useDispatch();
- const { i18n, t } = useTranslation();
- const isRTL = i18n.language === 'ar';
- const [loading, setLoading] = useState(true);
+import Loader from "../../Components/Loader";
+import FullButton from "../../Components/Buttons/FullButton";
+import InputWithLabel from "../../Components/Inputs/InputWithLabel";
+import LanguagePickerInput from "../../Components/Inputs/LanguagePickerInput";
+import LinearGradientComp from "../../Components/Background/LinearGradientComp";
+import ChangeLanguage from "../../api/ChangeLanguage";
 
- const [state, setState] = useState({
-  fields: [],
-  errorMessages: {},
- });
 
- useEffect(() => {
-  setLoading(true);
-  dispatch(loginForm()).then((res) => {
-   setLoading(false);
-   setState({
-    ...state,
-    fields: res?.payload,
-   });
-  });
- }, []);
+const Login = () => {
+  const { t } = useTranslation();
+  const navigation = useNavigation();
+  const {setPartnerId, setUserProfile} = useContext(CommonContext)
 
- const handleChange = (name, index, value) => {
-  const { fields, errorMessages } = state;
-  const field = fields[index];
-  const { fieldType, xmlName } = field;
-  if (name === xmlName) {
-   switch (fieldType) {
-    case 'checkbox':
-     field['value'] = value;
-     break;
-    case 'select':
-     field['value'] = value;
-     break;
-    default:
-     field['value'] = value;
-     break;
-   }
-  }
-  if (errorMessages[name]) delete errorMessages[name];
-  setState({
-   ...state,
-   fields,
-   [name]: value,
-  });
- };
+  const [loading, setLoading] = useState(false);
+  const [country, setCountry] = useState(KSA);
 
- const login = () => {
-  let data = {};
-  state?.fields?.forEach((field) => {
-   data[field?.xmlName] = field?.value;
-  });
-  data.userAgent = `gorex-${Platform.OS}`;
-  data.type = 'merchant';
-  setLoading(true);
-  dispatch(loginAction(data)).then((res) => {
-   setLoading(false);
-   if (res?.payload?.accessToken) {
-    const user = jwt(res?.payload?.accessToken);
-    setUser(user);
-    setToken(res?.payload);
-    // navigation.navigate('Dashboard');
-   }
-  });
- };
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [isMobileNumberEmpty, setIsMobileNumberEmpty] = useState(false);
 
- return (
-  <View style={styles.container}>
-   <Header title={t('auth.Login')} />
+  const [password, setPassword] = useState('');
+  const [isPasswordEmpty, setIsPasswordEmpty] = useState(false);
 
-   <ScrollView
-    style={styles.content}
-    contentContainerStyle={styles.contentContainer}
-   >
-    {state?.fields && state?.fields?.length > 0
-     ? state?.fields?.map((field, i) => (
-        <FormElement
-         index={i}
-         key={i}
-         field={field}
-         currentField={{ [field?.xmlName]: state[field?.xmlName] }}
-         errorMessages={state.errorMessages}
-         handleChange={handleChange}
-        />
-       ))
-     : null}
-    {/* <TextInput value title={'Mobile Number / Email'} />
-        <TextInput secured title={'Password'} /> */}
-    <TouchableOpacity
-     style={styles.forgotButton}
-     onPress={() => navigation.navigate('ForgotPassword')}
-    >
-     <Text style={styles.forgotText}>{t('auth.Forgot Password?')}</Text>
-    </TouchableOpacity>
-    <View style={styles.buttonContainer}>
-     <FullButton onPress={login} title={t('auth.Login')} />
-    </View>
-    <Text style={styles.bottomText}>
-     {t(
-      'auth.By continuing, you agree to Grow’s Terms of Service and Privacy Policy'
-     )}
-    </Text>
-    {isCustomer && (
-     <View style={styles.signupButton}>
-      <Text style={styles.signupText}>
-       {t('auth.Dont have an account. ? ')}{' '}
-      </Text>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-       <Text style={styles.forgotText}>{t('auth.Sign Up')} </Text>
-      </TouchableOpacity>
-     </View>
-    )}
-    {/* <SocialButton
-          containerStyle={{backgroundColor: LIGHTBLUE}}
-          title="Sign in with Google"
-          icon={Google}
-        />
-        <SocialButton
-          containerStyle={{backgroundColor: DARKERGREEN}}
-          title="Sign in with Email"
-          icon={Message}
-        />
-        <SocialButton
-          containerStyle={{backgroundColor: FACEBOOKBLUE}}
-          title="Sign in with Facebook"
-          icon={Message}
-        />
-        <SocialButton
-          containerStyle={{backgroundColor: WHITE}}
-          title="Sign in with Apple"
-          titleStyle={{color: BLACK}}
-          icon={Apple}
-        /> */}
-   </ScrollView>
-   <Loader visible={loading} />
-  </View>
- );
+  const [isKeepMeLoggedIn, setIsKeepMeLoggedIn] = useState(false);
+
+
+  const login = () => {
+    setIsMobileNumberEmpty(!mobileNumber.length);
+    setIsPasswordEmpty(!password.length);
+
+    if (mobileNumber.length > 0 && password.length>0){
+      setLoading(true);
+      SignIn({phoneNumber: `${country?.countryCode}${mobileNumber}`, password}).then(({ success, data, message }) => {
+        setLoading(false);
+
+        if (success) {
+          setPartnerId(data?.userID);
+          setUserProfile(data?.profileData);
+
+          if (isKeepMeLoggedIn) {
+            savePartnerId(data?.userParentId).then();
+          }
+
+          ChangeLanguage(data?.profileData.id).then((response)=>{
+            console.log('Language ===>> ', response);
+          });
+
+          setTimeout(() => {
+            const resetAction = CommonActions.reset({
+              index: 0,
+              routes: [{ name: "Dashboard" }],
+            });
+            navigation.dispatch(resetAction);
+          }, 200);
+
+        } else {
+          console.log(message);
+          showToast("Error", message, "error");
+        }
+
+      });
+    }
+  };
+
+  return (
+      <LinearGradientComp>
+        <View style={styles.container}>
+          <View style={styles.firstRow}>
+            <LanguagePickerInput />
+          </View>
+          <View style={{height: Platform.OS === 'ios' ? hp(165) : hp(165) - StatusBar.currentHeight / 2}} />
+          <View style={styles.LogoContainer}>
+            <AppLogo height={hp(50)} width={wp(200)} />
+          </View>
+
+          <ScrollView contentContainerStyle={styles.contentContainer}>
+
+            <InputWithLabel
+                darkTheme
+                type='mobile'
+                label={t("login.mobileNumber")}
+                value={mobileNumber}
+                setValue={setMobileNumber}
+                country={country}
+                setCountry={setCountry}
+                keyboardType='number-pad'
+                placeholder={t("login.mobileNumberPlaceholder")}
+                error={isMobileNumberEmpty}
+            />
+
+            <View style={{height: hp(20)}} />
+
+            <InputWithLabel
+                darkTheme
+                type='password'
+                label={t("login.password")}
+                value={password}
+                setValue={setPassword}
+                placeholder={t("login.passwordPlaceholder")}
+                error={isPasswordEmpty}
+            />
+
+            <View style={{height: hp(20)}} />
+            <View style={styles.forgotPasswordContainer}>
+              <View style={styles.checkboxContainer} onPress={() => setIsSelection(!checked)}>
+                <BouncyCheckbox size={20} fillColor={Colors.DARKERGREEN} unfillColor="transparent"
+                                iconStyle={{borderColor: Colors.DARKERGREEN, borderRadius: 5,}}
+                                innerIconStyle={{ borderWidth: 2, borderRadius: 5 }}
+                                isChecked={isKeepMeLoggedIn}
+                                disableText={true}
+                                onPress={(isChecked) => setIsKeepMeLoggedIn(isChecked)}
+                />
+
+                <Text style={styles.label}>{t("auth.keepMeLoggedIn")}</Text>
+              </View>
+              <Text style={styles.forgotPasswordText} onPress={() => navigation.navigate("ForgotPassword")}>{t("auth.Forgot Password?")}</Text>
+            </View>
+            <View style={{height: hp(38)}} />
+
+            <FullButton title={t("auth.signIn")} style={{ width: wp(388) }} onPress={login} />
+
+            <View style={styles.signUpButton}>
+              <Text style={styles.signUpText}>{t("auth.Donthaveanaccount")}</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                <Text style={styles.singUpLink}>{t("auth.Signuphere")}</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+          <Loader visible={loading} />
+        </View>
+      </LinearGradientComp>
+  );
 };
 
-// define your styles
 const styles = StyleSheet.create({
- container: {
-  flex: 1,
-  backgroundColor: WHITE,
- },
- content: {
-  flex: 1,
-  marginTop: hp(10),
- },
- contentContainer: {
-  flexGrow: 1,
-  paddingHorizontal: wp(22),
- },
- buttonContainer: {
-  marginTop: hp(14),
- },
- bottomText: {
-  marginTop: hp(15),
-  textAlign: 'center',
-  fontSize: responsiveFontSize(13),
-  textAlign: 'left',
-  fontFamily: PoppinsRegular,
-  color: GREY_TEXT,
- },
- signupButton: {
-  flexDirection: 'row',
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginTop: hp(15),
-  marginBottom: hp(15),
- },
- signupText: {
-  textAlign: 'center',
-  fontSize: responsiveFontSize(13),
-  textAlign: 'left',
-  fontFamily: PoppinsRegular,
-  color: GREY_TEXT,
- },
- forgotButton: {
-  alignSelf: 'flex-end',
-  marginTop: hp(11),
- },
- forgotText: {
-  color: BLUE,
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
-  textAlign: 'left',
-  fontSize: responsiveFontSize(16),
- },
+  container: {
+    flex: 1,
+  },
+  firstRow: {
+    height: hp(100),
+    alignItems:'flex-end',
+    justifyContent: 'flex-end',
+  },
+  LogoContainer: {
+    alignItems: "center",
+  },
+  contentContainer: {
+    flexGrow: 1,
+    paddingTop:hp(70),
+    paddingBottom:hp(100),
+    paddingHorizontal: wp(22),
+  },
+  signUpButton: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  signUpText: {
+    ...FontSize.rfs14,
+    ...FontFamily.medium,
+    color: Colors.WHITE,
+
+    textAlign: "center",
+    marginTop: hp(20),
+  },
+  singUpLink: {
+    ...FontSize.rfs18,
+    ...FontFamily.medium,
+    color: Colors.DARKERGREEN,
+
+    marginTop: hp(5),
+    textAlign: "center",
+    textDecorationLine: "underline",
+  },
+  forgotPasswordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: hp(5),
+  },
+  forgotPasswordText: {
+    ...FontFamily.bold,
+    color: Colors.WHITE,
+
+    textAlign: "right",
+    textDecorationLine: "underline",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+  },
+  label: {
+    ...FontSize.rfs14,
+    ...FontFamily.regular,
+    color: Colors.WHITE,
+
+    textAlign: "left",
+    marginLeft: wp(10),
+  },
+  corporateContainer: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+  },
 });
 
-//make this component available to the app
 export default Login;

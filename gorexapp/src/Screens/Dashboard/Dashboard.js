@@ -1,170 +1,301 @@
-//import liraries
-import React, { useEffect, useRef, useState } from 'react';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import Geolocation from '@react-native-community/geolocation';
-import HomeHeader from '../../Components/Header/HomeHeader';
-import BottomBar from './components/BottomBar';
-import { BranchPin, Locate, MyPin, Reload } from '../../assets';
-import { BLUE } from '../../constants/colors';
-import { hp, wp } from '../../utils/responsiveSizes';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
-import SideMenu from './components/SideMenu';
-import { useDispatch } from 'react-redux';
-import { getBranches, getBranchesByFilter } from './DashboardActions';
-import Loader from '../../Components/Loader';
+import React, {useContext, useEffect, useRef, useState} from "react";
+import {Alert, Image, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
 
-// create a component
-const Dashboard = () => {
- const navigation = useNavigation();
+import MapView from "react-native-maps";
+import { useTranslation } from "react-i18next";
+import Geolocation from "@react-native-community/geolocation";
 
- const dispatch = useDispatch();
+import Colors from "../../Constants/Colors";
+import {getProfileUpdate, setProfileUpdate, showToast} from "../../utils/common";
+import MapStyle from "../../Constants/MapStyle";
+import {hp, wp} from "../../utils/responsiveSizes";
+import FontFamily from "../../Constants/FontFamily";
+import {CommonContext} from "../../contexts/ContextProvider";
+import {GreenWhiteCurrentLocation, MyPin} from "../../assets";
+import GetServiceCategories from "../../api/GetServiceCategories";
 
- const focus = useIsFocused();
+import BottomBar from "./components/BottomBar";
+import Loader from "../../Components/Loader";
+import HomeHeader from "../../Components/Header/HomeHeader";
+import ProfileModel from "../../Components/Modal/ProfileModel";
+import NearByBranches from "../../api/NearbyBranches";
 
- const [coordinates, setCoordinates] = useState(null);
- const [showMenu, setShowMenu] = useState(false);
- const [branches, setBranches] = useState([]);
- const [loading, setLoading] = useState(true);
- const [reload, setReload] = useState(false);
- const mapRef = useRef();
+const Dashboard = ({ navigation }) => {
+  const { t } = useTranslation();
+  const {userProfile, setSelectedBranch, setCurrentLocation} = useContext(CommonContext);
+  const [reload, setReload]     = useState(false);
+  const [loading, setLoading]   = useState(true);
 
- useEffect(() => {
-  if (focus) {
-   Geolocation.getCurrentPosition((location) => {
-    setCoordinates({
-     latitude: location?.coords.latitude,
-     longitude: location?.coords.longitude,
-    });
-   });
-   dispatch(getBranches()).then((res) => {
-    setLoading(false);
-    setBranches(res?.payload);
-   });
+  const [allBranches, setAllBranches]               = useState([]);
+  const [filteredBranches, setFilteredBranches]     = useState([]);
+  const [serviceCategories, setServiceCategories]   = useState([]);
+
+  const [currentCoordinates, setCurrentCoordinates] = useState(null);
+  const [activeService, setActiveService] = useState(null);
+
+  const [isShowProfileAlert, setIsShowProfileAlert] = useState(false);
+
+  const mapRef = useRef();
+
+  useEffect(() => {
+    return navigation.addListener('focus', handleViewSwitch);
+  }, [navigation]);
+
+  const handleViewSwitch = async () => {
+    // call your function here
+    let isProfileUpdate = await getProfileUpdate();
+    if (!isProfileUpdate && !userProfile?.profile_completed) {
+      setIsShowProfileAlert(true);
+    } else {
+      setIsShowProfileAlert(false);
+    }
+
+    getCurrentLocation().then();
+    getAllServiceCategories().then();
+  };
+
+  useEffect(()=>{
+    checkNearByServiceProvidersForRegion();
+  },[currentCoordinates])
+
+  const getCurrentLocation = async () =>{
+    Geolocation.getCurrentPosition((location) => {
+          setCurrentCoordinates({latitude: location?.coords.latitude, longitude: location?.coords.longitude});
+          setCurrentLocation({latitude: location?.coords.latitude, longitude: location?.coords.longitude});
+        },
+        (error) => {
+          if (error.code === 2) {
+            Alert.alert("Alert!", "Please enable your location to use maps");
+          }
+        }
+    );
   }
- }, [reload, focus]);
 
- const animateMap = () => {
-  mapRef.current.animateToRegion({
-   latitude: coordinates.latitude,
-   longitude: coordinates.longitude,
-   latitudeDelta: 0.0922,
-   longitudeDelta: 0.0421,
-  });
-  setReload(!reload);
- };
- // const reloadMap = () => {
- //   Geolocation.getCurrentPosition(location => {
- //     mapRef.current.animateToRegion({
- //       latitude: location?.coords.latitude,
- //       longitude: location?.coords.longitude,
- //       latitudeDelta: 0.0922,
- //       longitudeDelta: 0.0421,
- //     });
- //     setCoordinates({
- //       latitude: location?.coords.latitude,
- //       longitude: location?.coords.longitude,
- //     });
- //   });
- // };
- const filterChanged = (id) => {
-  setLoading(true);
-  dispatch(
-   getBranchesByFilter({
-    id,
-    lat: coordinates?.latitude,
-    lon: coordinates?.longitude,
-   })
-  ).then((res) => {
-   setLoading(false);
-   setBranches(res?.payload);
-  });
- };
- return (
-  <View style={styles.container}>
-   {coordinates && (
-    <MapView
-     ref={mapRef}
-     provider={PROVIDER_GOOGLE}
-     initialRegion={{
-      latitude: coordinates?.latitude,
-      longitude: coordinates?.longitude,
+  const getAllServiceCategories = async () =>{
+    setLoading(true);
+    GetServiceCategories().then(({ success, response }) => {
+      if (success) {
+        setServiceCategories([{id : "GoD", name: t("common.gorexOnDemand")}]);
+      } else {
+        setLoading(false);
+        showToast("Error", response, "error");
+      }
+    });
+  }
+
+  const checkNearByServiceProvidersForRegion = () =>{
+    NearByBranches({region:currentCoordinates, userId:userProfile.id}).then((response)=>{
+      if (response.success){
+        setAllBranches(response.response);
+      }
+      setTimeout(()=>{
+        setLoading(false);
+      },1000);
+    });
+  }
+
+  React.useEffect(() => {
+    filterBranchesWith();
+  }, [allBranches]);
+
+  const filterBranchesWith = (id=null) => {
+    let branches = [...allBranches];
+    if (id){
+      let localBranches = [];
+      allBranches.map((branch)=>{
+        if (branch.services.indexOf(id) !== -1){
+          localBranches.push(branch);
+        }
+      });
+      branches = localBranches;
+      setFilteredBranches(branches);
+    }else {
+      setFilteredBranches(allBranches);
+    }
+    setLoading(false);
+  }
+
+  const onPressCurrentLocationButton = () => {
+    mapRef?.current?.animateToRegion({
+      latitude: currentCoordinates.latitude,
+      longitude: currentCoordinates.longitude,
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421,
-     }}
-     style={styles.map}
-    >
-     <MapView.Marker key={'1'} coordinate={coordinates}>
-      <View style={styles.circle}>
-       <Image source={MyPin} />
-      </View>
-     </MapView.Marker>
-     {branches?.map((value, index) => (
-      <MapView.Marker
-       key={index}
-       title={value?.title}
-       onCalloutPress={() =>
-        navigation.navigate('ServiceProviderDetails', {
-         id: value?._id,
-        })
-       }
-       coordinate={{
-        latitude: Number(value?.location?.coordinates[0]),
-        longitude: 73.75707118492694,
-       }}
-      >
-       <View style={styles.circle}>
-        <Image source={BranchPin} />
-       </View>
-      </MapView.Marker>
-     ))}
-    </MapView>
-   )}
-   <View style={styles.content}>
-    <HomeHeader onPress={() => setShowMenu(!showMenu)} />
-    <View style={styles.mapActions}>
-     <TouchableOpacity
-      // onPress={reloadMap}
-      onPress={() => navigation.navigate('ServiceProviderDetails')}
-      style={styles.mapAction}
-     >
-      <Image style={styles.locate} source={Reload} />
-     </TouchableOpacity>
-     <TouchableOpacity onPress={animateMap} style={styles.mapAction}>
-      <Image style={styles.locate} source={Locate} />
-     </TouchableOpacity>
-    </View>
+    });
+    setActiveService(null);
+    setReload(!reload);
+  };
 
-    <BottomBar filterChanged={filterChanged} />
-   </View>
-   <Loader visible={loading} />
-   <SideMenu visible={showMenu} onClose={() => setShowMenu(false)} />
-  </View>
- );
+  const reloadMap = () => {
+    Geolocation.getCurrentPosition(
+        (location) => {
+          mapRef?.current?.animateToRegion({
+            latitude: location?.coords.latitude,
+            longitude: location?.coords.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          });
+          setCurrentCoordinates({
+            latitude: location?.coords.latitude,
+            longitude: location?.coords.longitude,
+          });
+          setReload(!reload);
+        },
+        (error) => {
+          if (error.code === 2) {
+            Alert.alert("Error", "Please enable your location to use maps");
+          }
+        }
+    );
+  };
+
+  const onPressProfileAlert_CompleteInfo = () => {
+    onPressProfileAlert_Cancel();
+    navigation.navigate("ProfileUpdate");
+  }
+
+  const onPressProfileAlert_Cancel = () => {
+    setProfileUpdate(true).then();
+    setIsShowProfileAlert(false);
+  }
+
+  const onPressBranch = (branch) =>{
+    // setLoading(true);
+    // GetAllBranches(branch?.id).then(({success, data, message}) => {
+    //   console.log('Get all branches are back ===>> ', data);
+    //   setLoading(false);
+    //   if (success) {
+    //     setSelectedBranch(data[0]);
+    //     navigation.navigate("ServiceProviderDetails");
+    //   } else {
+    //     showToast("Error", message, "error");
+    //   }
+    // });
+  }
+
+  const navigateToGoD = () => {
+    navigation.navigate("GoDChooseVehicle");
+  };
+
+  const showCurrentLocationMarker = () => {
+    return (
+        <MapView.Marker key={"1"} coordinate={currentCoordinates}>
+          <View style={{ width: "30%", height: "30%" }}>
+            <Image
+                source={MyPin}
+                style={{ width: 60, height: 60, resizeMode: "contain" }}
+            />
+          </View>
+        </MapView.Marker>
+    )
+  }
+
+  const showBranchLocationMarker = (value, index) =>{
+    return (
+        <MapView.Marker
+            key={index}
+            coordinate={{latitude: Number(value?.lat), longitude: Number(value?.long),}}
+            onPress={()=>{onPressBranch(value)}}
+        >
+          <View style={styles.circle}>
+            <View
+                style={{
+                  backgroundColor: Colors.DARKERGREEN,
+                  borderRadius: wp(20),
+                  paddingHorizontal: wp(17),
+                  paddingVertical: wp(8.5),
+                }}
+            >
+              <Text style={styles.branchSize}>{value?.name}</Text>
+            </View>
+            <View style={styles.triangle} />
+          </View>
+        </MapView.Marker>
+    )
+  }
+
+  return (
+      <View style={styles.container}>
+        {currentCoordinates && (
+            <MapView
+                ref={mapRef}
+                initialRegion={{
+                  latitude: currentCoordinates?.latitude,
+                  longitude: currentCoordinates?.longitude,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
+                style={styles.map}
+                userInterfaceStyle={"dark"}
+                userLocationPriority="high"
+                customMapStyle={MapStyle}
+            >
+              {showCurrentLocationMarker()}
+              {filteredBranches?.map((value, index) => (
+                  showBranchLocationMarker(value,index)
+              ))}
+            </MapView>
+        )}
+
+        <HomeHeader onPress={() => navigation.openDrawer()} />
+
+        {/*Current Location Button*/}
+        <TouchableOpacity style={[styles.content]} onPress={onPressCurrentLocationButton}>
+          <GreenWhiteCurrentLocation width={wp(60)} height={wp(60)} />
+        </TouchableOpacity>
+
+        {!loading && (
+            serviceCategories.length > 0 ?
+                <BottomBar
+                    resetFilter={reload}
+                    setResetFilter={setReload}
+                    navigateToGoD={navigateToGoD}
+                    serviceCategories={serviceCategories}
+                    filterChanged={(id)=>{filterBranchesWith(id)}} />
+                : null
+            // <BottomBarOutRange resetFilter={reload} />
+        )}
+
+        <ProfileModel isShow={isShowProfileAlert} onPressCancel={onPressProfileAlert_Cancel} onPressButton={onPressProfileAlert_CompleteInfo}/>
+
+        <Loader visible={loading} />
+      </View>
+  );
 };
 
-// define your styles
 const styles = StyleSheet.create({
- container: { flex: 1 },
- content: { flex: 1 },
- map: {
-  ...StyleSheet.absoluteFillObject,
- },
- mapActions: {
-  position: 'absolute',
-  bottom: hp(200),
-  right: wp(20),
- },
- mapAction: {
-  backgroundColor: BLUE,
-  width: wp(47),
-  height: wp(47),
-  justifyContent: 'center',
-  alignItems: 'center',
-  borderRadius: 5,
-  marginBottom: hp(10),
- },
+  container: {
+    flex: 1,
+  },
+  content: {
+    position: "absolute",
+    bottom: hp(200),
+    right: wp(20),
+  },
+  map: {
+    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+    bottom: hp(0),
+  },
+  triangle: {
+    width: 0,
+    height: 0,
+    backgroundColor: "transparent",
+    borderStyle: "solid",
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderBottomWidth: 15,
+    left: "45%",
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: Colors.DARKERGREEN,
+    transform: [{ rotate: "-180deg" }],
+  },
+  branchSize: {
+    ...FontFamily.medium,
+    color: Colors.WHITE,
+    textAlign: "center",
+  },
 });
 
-//make this component available to the app
 export default Dashboard;

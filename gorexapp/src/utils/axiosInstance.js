@@ -1,18 +1,17 @@
 import axios from "axios";
-import { getFirstValidationError } from "./getFirstValidationError";
-import { defaultConfig } from "../utils/defaultConfig";
 
-import { getToken, setToken } from "./common";
+import { getToken, removeToken, setToken } from "./common";
+import { getFirstValidationError } from "./getFirstValidationError";
+
+import { defaultConfig } from "./defaultConfig";
 
 const axiosInstance = axios.create({
   ...defaultConfig(),
+    //-------- Local
+    // baseURL: `https://portal.gorex.ai/web`,
 
-  // baseURL: `https://gorex.softoo-dev.com/api`,
-  // baseURL: `https://gorex-qa.softoo-dev.com/api/`,
-  // baseURL: `https://api.gorex.ai/api/`,
-  //  baseURL: `https://gorex-pre-prod.softoo-dev.com/api/`,
-  // baseURL: "http://192.168.50.173:3000/api/",
-  baseURL: `https://api2.gorex.ai/api/`,
+    //-------- Live
+     baseURL: `https://partner.gorex.ai/web`,
 });
 axiosInstance.defaults.timeout = 30000;
 
@@ -21,18 +20,26 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
+    const { dispatch } = reduxStore;
+
+    const originalRequest = error?.config;
     if (
-      error.response.status === 401 &&
-      !originalRequest._retry &&
-      error?.config?.url != "/auth/login"
+      error?.response?.status === 401 &&
+      !originalRequest?._retry &&
+      error?.config?.url !== "/auth/login"
     ) {
-      originalRequest._retry = true;
-      const result = await axiosInstance.post(`/auth/refresh`);
-      setToken(result?.data?.data);
-      axiosInstance.defaults.headers.common["Authorization"] =
-        "Bearer " + result?.accessToken;
-      return axiosInstance(originalRequest);
+      try {
+        originalRequest._retry = true;
+        const result = await axiosInstance.post(`/auth/refresh`);
+
+        setToken(result?.data?.data);
+        axiosInstance.defaults.headers.common["Authorization"] =
+          "Bearer " + result?.accessToken;
+        return axiosInstance(originalRequest);
+      } catch (err) {
+        removeToken();
+        dispatch(logout());
+      }
     }
     return Promise.reject(getFirstValidationError(error));
   }
@@ -41,7 +48,6 @@ axiosInstance.interceptors.response.use(
 axiosInstance.interceptors.request.use(
   async (config) => {
     const tokens = await getToken();
-
     config.headers = {
       Authorization: `Bearer ${
         config?.url === "/auth/refresh"
@@ -55,7 +61,9 @@ axiosInstance.interceptors.request.use(
     return Promise.reject(getFirstValidationError(error));
   }
 );
+
 // export const setAxiosAuthToken = token => {
 //   axiosInstance.defaults.headers['auth-token'] = `${token}`;
 // };
+
 export default axiosInstance;

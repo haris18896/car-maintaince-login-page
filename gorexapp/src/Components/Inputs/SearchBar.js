@@ -1,42 +1,50 @@
-//import liraries
-import React from 'react';
-import { View, Image, StyleSheet, TextInput } from 'react-native';
-import { Search } from '../../assets';
-import { BORDER_GRAYLIGHT } from '../../constants/colors';
-import { SFProDisplayRegular } from '../../constants/fonts';
-import { hp, responsiveFontSize, wp } from '../../utils/responsiveSizes';
+import React from "react";
+import { View, StyleSheet, TextInput } from "react-native";
 
-// create a component
-const SearchBar = () => {
- return (
-  <View style={styles.container}>
-   <Image source={Search} />
-   <TextInput style={styles.input} placeholder='Search' />
-  </View>
- );
+import { useTranslation } from "react-i18next";
+
+import { BlackSearch } from "../../assets";
+import Colors from "../../Constants/Colors";
+import Fonts from "../../Constants/fonts";
+import FontSize from "../../Constants/FontSize";
+import { hp, wp } from "../../utils/responsiveSizes";
+
+const SearchBar = ({ search, onChangeText }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
+
+  return (
+    <View style={styles.container}>
+      <BlackSearch height={wp(15.6)} width={wp(15.6)} />
+      <TextInput
+        value={search}
+        onChangeText={onChangeText}
+        style={[styles.input, {textAlign: isRTL? "right" : "left"}]}
+        numberOfLines={1}
+        placeholder={t("productsAndServices.search")}
+        placeholderTextColor="#000"
+      />
+    </View>
+  );
 };
 
-// define your styles
 const styles = StyleSheet.create({
- container: {
-  marginVertical: hp(10),
-  borderWidth: 1,
-  borderColor: BORDER_GRAYLIGHT,
-  height: hp(43),
-  alignItems: 'center',
-  borderRadius: wp(27),
-  paddingLeft: wp(20),
-  flexDirection: 'row',
- },
- input: {
-  marginLeft: wp(15),
-  flex: 1,
-  paddingRight: wp(20),
-  textAlign: 'left',
-  fontFamily: SFProDisplayRegular,
-  fontSize: responsiveFontSize(17),
- },
+  container: {
+    marginVertical: hp(5),
+    borderWidth: 1,
+    borderColor: Colors.BORDER_GRAYLIGHT,
+    backgroundColor: "#C7CCD133",
+    height: hp(55),
+    alignItems: "center",
+    borderRadius: 5,
+    paddingLeft: wp(20),
+    flexDirection: "row",
+  },
+  input: {
+    flex: 1,
+    fontFamily: Fonts.LexendMedium,
+    ...FontSize.rfs14,
+  },
 });
 
-//make this component available to the app
 export default SearchBar;

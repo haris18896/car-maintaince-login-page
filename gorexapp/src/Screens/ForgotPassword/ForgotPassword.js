@@ -1,108 +1,124 @@
-//import liraries
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, ScrollView, Text, Platform} from 'react-native';
-import {TouchableOpacity} from 'react-native-gesture-handler';
-import {useDispatch} from 'react-redux';
-import FullButton from '../../Components/Buttons/FullButton';
-import Header from '../../Components/Header/BackHeader';
+import React, { useState } from "react";
+import {View, Text, Alert, StyleSheet, TouchableOpacity, TouchableHighlight, Keyboard} from "react-native";
 
-import jwt from 'jwt-decode'; // import dependency
-import TextInput from '../../Components/Inputs/TextInput';
+import { useTranslation } from "react-i18next";
+import { useNavigation } from "@react-navigation/native";
 
-import {BLUE, GREY_TEXT, WHITE} from '../../constants/colors';
-import {PoppinsRegular, SFProDisplayMedium} from '../../constants/fonts';
-import {
-  loginAction,
-  loginForm,
-  sendPasswordAction,
-} from '../../store/actions/auth';
-import {setToken, setUser, showToast} from '../../utils/common';
-import {hp, responsiveFontSize, wp} from '../../utils/responsiveSizes';
-import FormElement from '../../Components/FormEelement';
-import Loader from '../../Components/Loader';
-import {useTranslation} from 'react-i18next';
+import { Forward } from "../../assets";
+import Colors from "../../Constants/Colors";
+import { KSA } from "../../Constants/country";
+import FontSize from "../../Constants/FontSize";
+import Utilities from "../../utils/UtilityMethods";
+import FontFamily from "../../Constants/FontFamily";
+import { hp, wp } from "../../utils/responsiveSizes";
+import GeneralAPIWithEndPoint from "../../api/GeneralAPIWithEndPoint";
 
-// create a component
-const ForgotPassword = ({route}) => {
+import Loader from "../../Components/Loader";
+import Header from "../../Components/Header/BackHeader";
+import BottomButton from "../../Components/Buttons/BottomButton";
+import InputWithLabel from "../../Components/Inputs/InputWithLabel";
+import Footer from "../ProductsAndServices/components/Footer";
+
+const ForgotPassword = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
-  const isCustomer = route?.params?.customer;
-  const dispatch = useDispatch();
-  const {t} = useTranslation();
 
-  const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState('');
+  const [country, setCountry] = useState(KSA);
+  const [loading, setLoading] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [isValidPhoneNumber, setIsValidPhoneNumber] = useState(true);
 
-  const [state, setState] = useState({
-    fields: [],
-    errorMessages: {},
-  });
-
-  useEffect(() => {
-    setLoading(true);
-    dispatch(loginForm()).then(res => {
-      setLoading(false);
-      setState({
-        ...state,
-        fields: res?.payload,
-      });
-    });
-  }, []);
-
-  const handleChange = value => {
-    setEmail(value);
+  const onChangeText = (fieldName) => {
+    setIsValidPhoneNumber(true);
   };
 
-  const sendPassword = () => {
+  const sendPassword = async () => {
     setLoading(true);
-    dispatch(sendPasswordAction({email: email})).then(res => {
-      setLoading(false);
-      if (res?.payload?.message) {
-        showToast('Success!', res?.payload?.message, 'success');
-      }
-    });
+    const body = {
+      phone_number: `${country?.countryCode}${mobileNumber}`,
+    };
+    const forgotPasswordResponse = await GeneralAPIWithEndPoint("/generate/api/otp", body);
+    setLoading(false);
+    Alert.alert(
+      "OTP Sent",
+      forgotPasswordResponse,
+      [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("OTP", {phone: body?.phone_number}),
+        },
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
-      <Header title={t('auth.Forgot Password')} />
+      <Header title={t("auth.Forgot Password")} navigate={navigation} />
 
-      <ScrollView
-        contentContainerStyle={styles.contentContainer}
-        style={styles.content}>
-        <TextInput
-          changeHandler={handleChange}
-          value
-          title={t('auth.Please enter email')}
-        />
+      <View style={styles.forgotContainer}>
+        <Text style={styles.heading}>{t("auth.ResetPassword")}</Text>
+        <Text style={styles.subHeading}>{t("auth.account")}</Text>
+      </View>
 
-        <View style={styles.buttonContainer}>
-          <FullButton onPress={sendPassword} title={t('auth.Send Password')} />
-        </View>
-      </ScrollView>
+      <View style={{height: hp(36)}} />
+
+      <TouchableOpacity activeOpacity={1} style={styles.inputFieldWrapper} onPress={()=>{Keyboard.dismiss()}}>
+        <InputWithLabel
+          type='mobile'
+          label={t("forgotPassword.mobileNumber")}
+          name="mobileNumber"
+          value={mobileNumber}
+          setValue={setMobileNumber}
+          onChangeText={onChangeText}
+          country={country}
+          setCountry={setCountry}
+          keyboardType='number-pad'
+          error={!isValidPhoneNumber}
+          placeholder={t("forgotPassword.mobileNumberPlaceholder")} />
+      </TouchableOpacity>
+
+      <Footer title={t("auth.ResetPassword")}
+          onPress={ () => {
+            if (Utilities.isPhoneNumberValid(mobileNumber)) {
+              sendPassword().then();
+            } else {
+              setIsValidPhoneNumber(false);
+            }
+          }}
+      />
       <Loader visible={loading} />
     </View>
   );
 };
 
-// define your styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: Colors.WHITE,
   },
-  content: {
+  inputFieldWrapper: {
     flex: 1,
-    marginTop: hp(10),
+    paddingHorizontal: wp(20),
+
   },
-  buttonContainer: {
-    marginTop: hp(14),
+  forgotContainer: {
+    marginTop: wp(98),
+    paddingHorizontal: wp(20),
   },
-  contentContainer: {
-    flexGrow: 1,
-    paddingHorizontal: wp(22),
+  heading: {
+    ...FontSize.rfs30,
+    ...FontFamily.bold,
+    color: Colors.BLACK,
+    alignSelf: "flex-start"
+  },
+  subHeading: {
+    ...FontSize.rfs14,
+    ...FontFamily.semiBold,
+    color: Colors.BLACK,
+
+    marginTop: hp(3),
+    alignSelf: "flex-start",
   },
 });
 
-//make this component available to the app
 export default ForgotPassword;

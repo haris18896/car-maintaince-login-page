@@ -1,32 +1,20 @@
-import {PixelRatio, Dimensions} from 'react-native';
+import { PixelRatio, Dimensions } from "react-native";
 
-const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
-// const { height: SCREEN_HEIGHT_WITH_STATUSBAR } = Dimensions.get('screen');
-// let SCREEN_ABSOLUTE_HEIGHT = null;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-// based on iphone 8 scale
-// const scale = SCREEN_WIDTH / 375;
+const WidthRatio = SCREEN_WIDTH / 428;
+const HeightRatio = SCREEN_HEIGHT / 926;
 
-const dimensionPercentToDP = (valuePercent, dimensionValue) =>
-  PixelRatio.roundToNearestPixel(
-    (dimensionValue * parseFloat(valuePercent)) / 100,
-  );
-
-const wp = width => {
-  const widthPercent = (width / 375) * 100;
-  return dimensionPercentToDP(widthPercent, SCREEN_WIDTH);
+const wp = (width) => {
+  return PixelRatio.roundToNearestPixel(width * WidthRatio);
 };
 
-const hp = height => {
-  const heightPercent = (height / 812) * 100;
-  return dimensionPercentToDP(heightPercent, SCREEN_HEIGHT);
+const hp = (height) => {
+  return PixelRatio.roundToNearestPixel(height * HeightRatio);
 };
 
-// const heightPercentageToDPFull = (heightPercent) =>
-//   dimensionPercentToDP(heightPercent, SCREEN_HEIGHT_WITH_STATUSBAR);
-
-const responsiveFontSize = fontSize => {
-  return PixelRatio.roundToNearestPixel(fontSize / PixelRatio.getFontScale());
+const rfs = (fontSize) => {
+  return hp(fontSize);
 };
 
 // const normalize = (size) => {
@@ -52,21 +40,13 @@ const responsiveFontSize = fontSize => {
 //   return PixelRatio.roundToNearestPixel((screenWidth * elemHeight) / 100);
 // };
 
-// const setAbsHeight = (height) => {
-//   SCREEN_ABSOLUTE_HEIGHT = height;
-// };
-
 export {
-  wp,
   hp,
-  responsiveFontSize,
+  wp,
+  rfs,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
   // normalize,
   // responsiveVerticalSize,
   // responsiveHorizontalSize,
-  // SCREEN_HEIGHT,
-  // SCREEN_WIDTH,
-  // SCREEN_HEIGHT_WITH_STATUSBAR,
-  // heightPercentageToDPFull,
-  // SCREEN_ABSOLUTE_HEIGHT,
-  // setAbsHeight,
 };

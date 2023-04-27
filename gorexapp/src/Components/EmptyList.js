@@ -1,36 +1,51 @@
-import React from 'react';
-import { View, StyleSheet, Text, Image } from 'react-native';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { View, StyleSheet, Text, Image } from "react-native";
 
-import { Empty } from '../assets';
-import { BLACK } from '../constants/colors';
-import { SFProDisplayMedium } from '../constants/fonts';
-import { hp, responsiveFontSize, wp } from '../utils/responsiveSizes';
+import { NoVehicle } from "../assets";
+import Colors from "../Constants/Colors";
+import Fonts from "../Constants/fonts";
+import { hp, wp } from "../utils/responsiveSizes";
+import FontSize from "../Constants/FontSize";
 
-function EmptyList() {
- return (
-  <View style={styles.container}>
-   <Image transitionDuration={1000} source={Empty} style={styles.item} />
-   <Text style={styles.text}>Nothing to show yet</Text>
-  </View>
- );
+function EmptyList () {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
+  return (
+    <View style={styles.container}>
+      <Image resizeMode="contain" transitionDuration={1000} source={NoVehicle} style={styles.item}/>
+      <Text style={styles.text}> {t("vehicle.novehicle")}</Text>
+      <Text style={styles.title}>{t("vehicle.novehicleaccount")}</Text>
+    </View>
+  );
 }
 const styles = StyleSheet.create({
- container: {
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'center',
- },
- item: {
-  height: hp(160),
-  resizeMode: 'contain',
-  width: wp(105),
- },
- text: {
-  color: BLACK,
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
-  fontSize: responsiveFontSize(22),
-  marginTop: hp(10),
- },
+  container: {
+    alignItems: "center",
+    flex: 1,
+    // alignSelf: "center",
+    justifyContent: "center",
+  },
+  item: {
+    height: hp(160),
+    resizeMode: "contain",
+    width: wp(105),
+    marginTop: hp(60),
+  },
+  text: {
+    color: Colors.BLACK,
+    fontFamily: Fonts.LexendMedium,
+    textAlign: "center",
+    ...FontSize.rfs24,
+    marginTop: hp(5),
+  },
+  title: {
+    color: "#B8B9C1",
+    width: "70%",
+    fontFamily: Fonts.LexendMedium,
+    textAlign: "center",
+    ...FontSize.rfs16,
+    marginTop: hp(10),
+  },
 });
 export default EmptyList;

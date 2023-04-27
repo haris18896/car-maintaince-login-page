@@ -1,4 +1,3 @@
-//import liraries
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -6,23 +5,24 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  keyboard,
   Image,
-  Keyboard,
 } from "react-native";
-import DatePicker from "react-native-date-picker";
-import moment from "moment";
-import { Down } from "../../assets";
-import { BLACK, BLUE, GREY, RED } from "../../constants/colors";
-import { SFProDisplayMedium } from "../../constants/fonts";
-import { hp, responsiveFontSize, wp } from "../../utils/responsiveSizes";
-import SelectOptions from "./SelectOptions";
+import { ArrowDown } from "../../assets";
+import { unwantedCountries } from "../../Constants/unwantedCountries";
+import Colors from "../../Constants/Colors";
+import Fonts from "../../Constants/fonts";
+import { hp, wp } from "../../utils/responsiveSizes";
 import { useTranslation } from "react-i18next";
 import { CountryPicker } from "react-native-country-codes-picker";
+import { getAllCountries } from "react-native-country-picker-modal";
+import Utilities from "../../utils/UtilityMethods";
+import FontSize from "../../Constants/FontSize";
+import { t } from "i18next";
 
-// create a component
 const MobilePhone = ({
   title,
+  login,
+  isValid = true,
   secured = false,
   select,
   date,
@@ -31,273 +31,286 @@ const MobilePhone = ({
   changeHandler,
   defaultValue,
   disabled,
-
+  keyboard,
   type,
   code,
   titleUp,
   dial_code,
+  showError,
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
   const [text, setText] = useState("");
-  const [showSelect, setShowSelect] = useState("");
-  const [_date, setDate] = useState(new Date());
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [show, setShow] = useState(false);
-  const [countryCode, setCountryCode] = useState("");
-  const [open, setOpen] = useState(false);
-  const [keyboardheight, setKeyboardheight] = React.useState(0);
-  const selectOption = (option) => {
-    setShowSelect(false);
-    changeHandler(option?.value);
-    setText(option?.label);
-  };
+  const [cr, setCr] = useState();
+  const [loading, setLoading] = useState(true);
+  const [country, setCountry] = useState({
+    flag: "🇸🇦",
+  });
+  const [countryCode, setCountryCode] = useState("+966");
 
   useEffect(() => {
     if (defaultValue) setText(defaultValue);
   }, [defaultValue]);
   const { i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      (e) => {
-        setKeyboardVisible(true); // or some other action
-        setKeyboardheight(e.endCoordinates.height);
-        console.log("keyboard SHOW", e.endCoordinates.height);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => {
-        setKeyboardVisible(false); // or some other action
-        console.log("keyboard HIDE");
-      }
-    );
+    getCountries();
+    setLoading(false);
+  }, [loading]);
 
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
-  }, []);
+  const getCountries = () => {
+    getAllCountries().then((ctr) => {
+      let filtered = ctr.filter((c) => c.cca2 == "PK" || c.cca2 == "SKA");
+      setCr(filtered);
+    });
+  };
+
   return (
-    <View style={styles.container2}>
-      <View style={styles.container}>
-        <TouchableOpacity
-          onPress={() => setShow(true)}
-          style={{
-            ...styles.selectInput,
-            borderBottomColor: text == "" ? error && RED : BLUE,
-          }}
-        >
-          <Text
-            style={{
-              fontSize:
-                countryCode == ""
-                  ? responsiveFontSize(12)
-                  : responsiveFontSize(14),
-
-              color: countryCode == "" ? GREY : "black",
-              fontWeight: "400",
-            }}
-          >
-            {countryCode == "" ? " +93" : countryCode}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            if (select) {
-              setShowSelect(!showSelect);
-            } else if (date) setOpen(true);
-          }}
-          disabled={(!select && !date) || disabled}
-          style={
-            type === "textarea" ? styles.textareaContainer : styles.container
-          }
-        >
-          {type !== "textarea" && (
-            <Text style={text ? styles.titleUp : styles.title}>
-              {title}
-              {text == "" ? (
-                <Text style={{ color: text == "" ? error && RED : BLUE }}>
-                  {"*"}
-                </Text>
-              ) : null}
-            </Text>
-          )}
-          <TextInput
-            value={text}
-            multiline={type === "textarea"}
-            onChangeText={(value) => {
-              setText(value);
-              changeHandler(countryCode + value);
-            }}
-            placeholder={type === "textarea" ? title : ""}
-            style={[
-              type === "textarea"
-                ? styles.textarea
-                : {
-                    ...styles.selectInput2,
-                    borderBottomColor: text == "" ? error && RED : BLUE,
-                  },
-              ,
-              { textAlign: isRTL ? "right" : "left" },
-            ]}
-            editable={disabled ? false : true}
-            secureTextEntry={secured}
-            keyboardType={keyboard ? keyboard : "default"}
-          />
-        </TouchableOpacity>
-        <CountryPicker
-          show={show}
-          onBackdropPress={() => setShow(false)}
-          style={{
-            // Styles for whole modal [View]
-            modal: {
-              height: isKeyboardVisible ? 250 : 400,
-
-              backgroundColor: "white",
-            },
-            // Styles for modal backdrop [View]
-            backdrop: {},
-            // Styles for bottom input line [View]
-            line: {},
-            // Styles for list of countries [FlatList]
-            itemsList: { backgroundColor: "white", color: BLACK, fontSize: 17 },
-            // Styles for input [TextInput]
-            textInput: {
-              height: 40,
-              width: 50,
-              color: BLACK,
-              backgroundColor: "white",
-              borderRadius: 0,
-            },
-            // Styles for country button [TouchableOpacity]
-            countryButtonStyles: {
-              height: 40,
-              width: 300,
-              color: BLACK,
-              backgroundColor: "transparent",
-            },
-            dialCode: { fontSize: 14, color: BLACK },
-            countryName: { fontSize: 14, color: BLACK },
-            // Styles for search message [Text]
-          }}
-          // containerStyle={styles.phoneContainer}
-          // textContainerStyle={styles.textInput}
-          // when picker button press you will get the country object with dial code
-          pickerButtonOnPress={(item) => {
-            setCountryCode(item?.dial_code);
-            changeHandler(item?.dial_code + text);
-            setShow(false);
-          }}
-        />
-      </View>
-      {/* {error && (
+    <>
+      {loading ? null : (
         <View>
-          <Text
-            style={{
-              color: BLUE,
-              marginTop: -10,
-              fontSize: responsiveFontSize(12),
-            }}
+          {!login && <Text style={styles.titleUpUpdate}>{title}</Text>}
+          <View
+            style={[
+              styles.container2,
+              login ? styles.login : styles.grey,
+              error ? styles.errorFieldStyle : {},
+              {
+                justifyContent: "center",
+                borderWidth: isFocused || showError || !isValid ? 1 : 0,
+                borderColor:
+                  showError || !isValid
+                    ? Colors.RED
+                    : isFocused
+                    ? Colors.DARKERGREEN
+                    : null,
+              },
+            ]}
           >
-            Field is Required!
-          </Text>
+            <View style={styles.container}>
+              <TouchableOpacity
+                onPress={() =>
+                  setTimeout(() => {
+                    setShow(true);
+                  }, 0)
+                }
+                style={{
+                  ...styles.selectInput,
+                }}
+              >
+                <Text
+                  style={{
+                    ...FontSize.rfs16,
+                    fontFamily: Fonts.LexendMedium,
+                    marginTop: -3,
+
+                    color:
+                      countryCode == ""
+                        ? Colors.GREY
+                        : login
+                        ? "white"
+                        : "black",
+                  }}
+                >
+                  {country?.flag}
+                  {"  "}
+                  {countryCode == "" ? "Country Code" : countryCode}
+                </Text>
+                <View style={{ width: wp(10) }} />
+                <Image
+                  source={ArrowDown}
+                  style={{ height: hp(6), width: wp(9) }}
+                />
+              </TouchableOpacity>
+
+              <TextInput
+                onBlur={() => setIsFocused(false)}
+                onFocus={() => setIsFocused(true)}
+                value={text}
+                textAlignVertical="center"
+                multiline={type === "textarea"}
+                onChangeText={(value) => {
+                  setText(value.replace(/[^0-9]/g, ""));
+                  changeHandler(countryCode + value);
+                }}
+                placeholder={t("auth.yourmobile")}
+                placeholderTextColor={login ? Colors.WHITE : Colors.BLACK}
+                style={[
+                  type === "textarea" ? styles.textarea : styles.selectInput2,
+                  {
+                    textAlign: isRTL ? "right" : "left",
+                    color: login ? "white" : "black",
+                    fontFamily: login ? Fonts.LexendLight : Fonts.LexendRegular,
+                    fontWeight: "normal",
+                    width: wp(255),
+                    paddingVertical: 0,
+                  },
+                ]}
+                editable={disabled ? false : true}
+                secureTextEntry={secured}
+                keyboardType={keyboard ? keyboard : "default"}
+              />
+
+              <CountryPicker
+                show={show}
+                excludedCountries={unwantedCountries}
+                onBackdropPress={() => setShow(false)}
+                countryList={cr}
+                style={{
+                  // Styles for whole modal [View]
+                  modal: {
+                    height: 150,
+                    backgroundColor: "white",
+                  },
+                  // Styles for modal backdrop [View]
+                  backdrop: {},
+                  // Styles for bottom input line [View]
+                  line: {
+                    height: 0,
+                  },
+                  // Styles for list of countries [FlatList]
+                  itemsList: {},
+                  flag: {
+                    width: Utilities.wp(4),
+                  },
+                  // Styles for input [TextInput]
+                  textInput: {
+                    height: 0,
+                    padding: 0,
+                    backgroundColor: Colors.WHITE,
+                  },
+                  // Styles for country button [TouchableOpacity]
+                  countryButtonStyles: {
+                    height: 40,
+                    width: 300,
+                    color: Colors.BLACK,
+                    backgroundColor: "transparent",
+                  },
+                  dialCode: {
+                    ...FontSize.rfs14,
+                    fontFamily: Fonts.LexendMedium,
+                    color: Colors.BLACK,
+                  },
+                  countryName: {
+                    ...FontSize.rfs14,
+                    fontFamily: Fonts.LexendMedium,
+                    color: Colors.BLACK,
+                  },
+
+                  // Styles for search message [Text]
+                }}
+                // containerStyle={styles.phoneContainer}
+                // textContainerStyle={styles.textInput}
+                // when picker button press you will get the country object with dial code
+                pickerButtonOnPress={(item) => {
+                  setCountry(item);
+                  setCountryCode(item?.dial_code);
+                  changeHandler(item?.dial_code + text);
+                  setShow(false);
+                }}
+              />
+            </View>
+          </View>
         </View>
-      )} */}
-    </View>
+      )}
+    </>
   );
 };
 
-// define your styles
 const styles = StyleSheet.create({
   container: {
-    height: hp(45),
     flexDirection: "row",
-    // width: "100%",
-
-    justifyContent: "space-between",
-    marginBottom: hp(10),
+    // justifyContent: "center",
+    width: "100%",
+    alignItems: "center",
+  },
+  titleUpUpdate: {
+    // position: "absolute",
+    // top: 0,
+    ...FontSize.rfs16,
+    color: Colors.BLACK,
+    fontFamily: Fonts.LexendMedium,
+    textAlign: "left",
+    paddingBottom: 7,
+    paddingTop: 12,
+  },
+  login: {
+    marginTop: 5,
+    backgroundColor: Colors.BLACK,
+    height: Utilities.wp(12),
+    fontFamily: Fonts.LexendLight,
+  },
+  grey: {
+    backgroundColor: Colors.BORDER_GRAYLIGHTEST,
+  },
+  errorFieldStyle: {
+    borderColor: Colors.RED,
+    borderWidth: 1,
   },
   container2: {
     height: hp(45),
-    // flexDirection: "row",
-    // width: "100%",
-
-    justifyContent: "space-between",
-    marginBottom: hp(10),
+    borderRadius: 50,
+    width: "100%",
   },
   textareaContainer: {
     height: hp(174),
+
     marginBottom: hp(10),
   },
   title: {
-    position: "absolute",
-    bottom: hp(4),
-    fontSize: responsiveFontSize(12),
-    color: GREY,
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-  },
-  titleUp: {
-    position: "absolute",
-    top: 0,
-    fontSize: responsiveFontSize(12),
-    color: GREY,
-    fontFamily: SFProDisplayMedium,
+    ...FontSize.rfs14,
+    color: Colors.WHITE,
+    fontFamily: Fonts.LexendMedium,
     textAlign: "left",
   },
 
   input: {
-    borderBottomColor: BLUE,
+    borderBottomColor: Colors.BLUE,
     borderBottomWidth: 1,
-    // paddingHorizontal: wp(5),
-    paddingVertical: hp(4),
 
-    fontFamily: SFProDisplayMedium,
+    // paddingHorizontal: wp(5),
+    // paddingVertical: hp(4),
+
+    fontFamily: Fonts.LexendMedium,
     textAlign: "left",
-    fontSize: responsiveFontSize(15),
-    color: BLACK,
-    paddingLeft: 0,
+    ...FontSize.rfs15,
+    color: Colors.BLACK,
+    // paddingLeft: 0,
   },
   textarea: {
-    borderColor: BLUE,
+    borderColor: Colors.BLUE,
     borderWidth: 1,
     paddingVertical: hp(4),
     minHeight: hp(174),
-    fontFamily: SFProDisplayMedium,
+    fontFamily: Fonts.LexendMedium,
     textAlign: "left",
-    fontSize: responsiveFontSize(15),
+    ...FontSize.rfs14,
     // paddingLeft: 0,
-    textAlignVertical: "top",
+    // textAlignVertical: "top",
     paddingHorizontal: hp(12),
-    marginTop: hp(12),
+    // marginTop: hp(12),
     borderRadius: 8,
-    color: BLACK,
+    color: Colors.BLACK,
   },
   selectInput: {
-    borderBottomColor: BLUE,
-    borderBottomWidth: 1,
-    width: wp(40),
-    paddingVertical: hp(4),
+    // borderBottomColor: Colors.BLUE,
+    // borderWidth: 1,
+    width: Utilities.wp(28),
     alignSelf: "center",
-    marginTop: hp(16),
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-    borderColor: BLUE,
-    fontSize: responsiveFontSize(15),
+    paddingLeft: Utilities.wp(4),
+    flexDirection: "row",
+    alignItems: "center",
+    borderRightColor: Colors.GREY,
+    borderRightWidth: 1,
+    // textAlign: "left",
+    ...FontSize.rfs14,
   },
   selectInput2: {
-    borderBottomColor: BLUE,
-    borderBottomWidth: 1,
-    width: wp(290),
-    paddingVertical: hp(4),
-    alignSelf: "center",
-    marginTop: hp(13),
-    borderColor: BLUE,
-    color: BLACK,
-    fontFamily: SFProDisplayMedium,
-    textAlign: "left",
-    fontSize: responsiveFontSize(15),
+    paddingHorizontal: 10,
+    fontFamily: Fonts.LexendLight,
+    color: Colors.WHITE,
+    ...FontSize.rfs16,
   },
   down: {
     position: "absolute",
@@ -305,10 +318,10 @@ const styles = StyleSheet.create({
     bottom: 10,
   },
   pickerText: {
-    fontFamily: SFProDisplayMedium,
+    fontFamily: Fonts.LexendMedium,
     textAlign: "left",
-    fontSize: responsiveFontSize(15),
-    color: BLACK,
+    ...FontSize.rfs15,
+    color: Colors.BLACK,
   },
   phoneContainer: {
     width: "75%",
@@ -327,5 +340,4 @@ const styles = StyleSheet.create({
   },
 });
 
-//make this component available to the app
 export default MobilePhone;

@@ -1,98 +1,251 @@
-//import liraries
+import React, {useContext, useEffect, useState} from "react";
+import {View, StyleSheet, FlatList, Text, Alert} from "react-native";
 
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, FlatList} from 'react-native';
-import {useDispatch} from 'react-redux';
+import { useTranslation } from "react-i18next";
+import { useNavigation } from "@react-navigation/native";
 
-import {Cart} from '../../assets';
-import MediumButton from '../../Components/Buttons/MediumButton';
-import BackHeader from '../../Components/Header/BackHeader';
-import CheckBox from '../../Components/Inputs/CheckBox';
-import {WHITE} from '../../constants/colors';
-import {getData, getServicesData} from '../../utils/common';
-import {hp, wp} from '../../utils/responsiveSizes';
-import {getServices} from '../ServiceProvider/ServiceProviderActions';
-import BottomBar from './ components/BottomBar';
-import TabBar from './ components/TabBar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Cart } from "../../assets";
+import Fonts from "../../Constants/fonts";
+import Colors from "../../Constants/Colors";
+import FontSize from "../../Constants/FontSize";
+import {setCart, showToast} from "../../utils/common";
+import { hp, wp } from "../../utils/responsiveSizes";
 
-// create a component
-const ServicesSubCategory = ({route}) => {
+import TabBar from "./components/TabBar";
+import Loader from "../../Components/Loader";
+import CheckBox from "../../Components/Inputs/CheckBox";
+import BackHeader from "../../Components/Header/BackHeader";
+import GeneralAPIWithEndPoint from "../../api/GeneralAPIWithEndPoint";
+import {CommonContext} from "../../contexts/ContextProvider";
+import Footer from "./components/Footer";
+
+const ServicesSubCategory = ({ route }) => {
+  const {selectedBranch, inCartOrder, setInCartOrder}  = useContext(CommonContext);
+  const category = route?.params?.category;
+
+  const { t } = useTranslation();
   const navigation = useNavigation();
-  const title = route?.params?.title;
-  const branch = route?.params?.branch;
-  const servicetype = route?.params?.servicetype;
-  const dispatch = useDispatch();
 
+  const [loading, setLoading] = useState(true);
   const [services, setServices] = useState([]);
-  const [updateCart, setUpdateCart] = useState(false);
-
-  const [servicesSelected, setServicesSelected] = useState([]);
-
-  // const _services = [
-  //   {_id: 1, name: 'A service', price: 10},
-  //   {_id: 2, name: 'B service', price: 20},
-  // ];
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [servicesPrice, setServicesPrice] = useState(0);
 
   useEffect(() => {
-    dispatch(
-      getServices({branch: branch?._id, servicetype: servicetype?._id}),
-    ).then(res => {
-      setServices(res?.payload?.data);
+    const body = {
+      service_provider: selectedBranch.id,
+      categ_id:category.id,
+      category_type: "service",
+    };
+    GeneralAPIWithEndPoint("/branch/products", body).then((response) => {
+      setLoading(false);
+      checkIfServiceIsAlreadyAddedInCart(response);
+
     });
   }, []);
 
-  const serviceChecked = async (checked, service) => {
-    service.quantity = 1;
-    if (checked) {
-      setServicesSelected(_service => [..._service, service]);
-    } else {
-      let ss = [...servicesSelected];
-      const index = ss.findIndex(s => s.name === service.name);
-      ss.splice(index, 1);
-      setServicesSelected(ss);
+
+  const checkIfServiceIsAlreadyAddedInCart = (localServices) =>{
+
+    if (inCartOrder){
+      setServicesPrice(inCartOrder.totalPrice)
+
+      let tempServices  = [];
+      localServices.map((serviceItem)=>{
+        let serviceInCart = inCartOrder.services.filter(item => item.id === serviceItem.id);
+
+        if (serviceInCart.length > 0){
+          tempServices.push(serviceItem);
+        }
+      });
+      setSelectedServices(tempServices);
     }
-  };
-  const addToCart = async () => {
-    let data = (await getServicesData()) || [];
 
-    data = [...data, ...servicesSelected];
+    setServices(localServices);
+  }
 
-    const jsonValue = JSON.stringify(data);
-    await AsyncStorage.setItem('services', jsonValue);
-    setUpdateCart(!updateCart);
+  const isServiceSelected = (item) =>{
+    let index = selectedServices.findIndex((selectedService) => selectedService.id === item.id)
+    return index > -1 ;
+  }
+
+  const serviceChecked = async (checked, service) => {
+
+    let newPrice  = servicesPrice;
+
+    if (checked){
+      if (selectedServices.length > 0){
+        const oldService  = selectedServices[0];
+        newPrice          = servicesPrice - oldService.price;
+      }
+
+      newPrice          = newPrice + service.price;
+      setServicesPrice(newPrice);
+      setSelectedServices([service]);
+    }else{
+      const oldService  = selectedServices[0];
+      newPrice          = servicesPrice - oldService.price;
+      setServicesPrice(newPrice);
+      setSelectedServices([]);
+    }
+
+
+
+    // let updatedSelectedServices = [];
+    // const index = updatedSelectedServices.findIndex((selectedService) => selectedService.id === service.id);
+    //
+    // if (index === -1){
+    //   updatedSelectedServices.push(service);
+    // }else {
+    //   updatedSelectedServices.splice(index, 1);
+    //
+    // }
+    //
+    //
+    // let currentPrice  = newPrice;
+    // if (checked){
+    //   currentPrice    = currentPrice + service.price;
+    // }else {
+    //   currentPrice    = currentPrice - service.price;
+    // }
+    //
+    // setServicesPrice(currentPrice);
+    // setSelectedServices(updatedSelectedServices);
   };
+
+  const addToCart = () => {
+    let cartBranch    = null;
+    let cartServices  = [];
+    let cartProducts  = [];
+    let cartTotal     = 0;
+
+    if (inCartOrder){
+      cartBranch        = inCartOrder.branch;
+      cartProducts      = [...inCartOrder.products];
+
+      let tempServices  = [];
+      selectedServices.map((selectedService)=>{
+        let serviceInCart = inCartOrder.services.filter(item => item.id === selectedServices.id);
+        if (serviceInCart.length <= 0){
+          tempServices.push(selectedService);
+        }
+      });
+
+      cartServices  = [...inCartOrder.services, ...tempServices];
+      let cartPrice = 0;
+      cartServices.map((cartService) =>{
+        cartPrice = cartPrice + cartService.price;
+      });
+      cartProducts.map((cartProduct) =>{
+        cartPrice = cartPrice + (cartProduct.product.price * cartProduct.quantity);
+      });
+
+      cartTotal = cartPrice;
+    }else {
+      cartBranch    = selectedBranch;
+      cartServices  = [...selectedServices];
+      cartProducts  = [];
+      cartTotal     = servicesPrice;
+    }
+
+
+
+    let order = {
+      branch:cartBranch,
+      services:cartServices,
+      products:cartProducts,
+      totalPrice:cartTotal,
+      date:null,
+      slot:null,
+    }
+
+    setInCartOrder(order)
+    setCart(order).then()
+
+  };
+
+  const onPressCartIcon = () =>{
+    // navigation.navigate("PaymentMethod");
+    if (inCartOrder?.services?.length > 0){
+      navigation.navigate("Slots", {isOnDemand:false});
+    }else {
+      navigation.navigate("PaymentMethod");
+    }
+  }
+
+  const onPressBottomButton = () =>{
+    if (inCartOrder && services.length <= 0){
+      navigation.navigate("PaymentMethod");
+      // if (inCartOrder.services.length <= 0){
+      //   navigation.navigate("PaymentMethod");
+      // }else {
+      //   navigation.navigate("Slots", {isOnDemand:false});
+      // }
+    }else if (inCartOrder && services.length > 0){
+      if (inCartOrder.branch.id === selectedBranch.id){
+        addToCart();
+        // navigation.navigate("PaymentMethod");
+        if (services.length > 0){
+          navigation.navigate("Slots", {isOnDemand:false});
+        }else {
+          navigation.navigate("PaymentMethod");
+        }
+      }else {
+        Alert.alert("Clear the previous cart to make an order from different branch");
+      }
+    }else if (services.length > 0){
+      addToCart();
+      // navigation.navigate("PaymentMethod");
+        navigation.navigate("Slots", {isOnDemand:false});
+      // if (services.length > 0){
+      // }else {
+      //   navigation.navigate("PaymentMethod");
+      // }
+    }
+  }
+
+  const getBottomButtonTitle = () =>{
+    let title  = t("service.addcart");
+    if (inCartOrder && services.length > 0){
+      title = t("productsAndServices.updateCart");
+    }else if (inCartOrder && services.length <= 0){
+      title = t("productsAndServices.viewCart")
+    }
+    return title;
+  }
+
+
   return (
-    <View style={styles.container}>
-      <BackHeader rightIcon={Cart} title={title} />
-      <TabBar active={2} />
-      <View style={styles.paddedContent}>
-        <View style={styles.servicesContainer}>
-          <FlatList
-            data={services}
-            renderItem={({item}) => (
-              <CheckBox serviceChecked={serviceChecked} item={item} />
-            )}
-          />
+      <View style={styles.container}>
+        <BackHeader title={selectedBranch.name} rightIcon={Cart} RightPress={() => {onPressCartIcon()}}/>
+        <TabBar active={2} />
+        <View style={styles.paddedContent}>
+          <View style={[styles.servicesContainer]}>
+            <Text style={{...FontSize.rfs18, color: "black", fontFamily: Fonts.LexendBold,}}>{t("productsAndServices.chooseServiceType")}</Text>
+            <FlatList
+                style={{ marginTop: 15 }}
+                data={services}
+                renderItem={({ item }) => (
+                    <CheckBox item={item} isChecked={isServiceSelected(item)} serviceChecked={serviceChecked} />
+                )}
+            />
+          </View>
         </View>
-        <MediumButton onPress={addToCart} title={'Add To Order'} />
+
+
+        <Footer title={getBottomButtonTitle()}
+                rightTitle={t("common.SAR") + " " + servicesPrice}
+                onPress={()=>{onPressBottomButton()}} />
+
+        <Loader visible={loading} />
       </View>
-      <BottomBar
-        updateCart={updateCart}
-        onPress={() => navigation.navigate('PaymentMethod', {title, branch})}
-        showButton
-        btnTitle={'View Order'}
-      />
-    </View>
   );
 };
 
-// define your styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: Colors.WHITE,
   },
   paddedContent: {
     paddingHorizontal: wp(14),
@@ -103,7 +256,10 @@ const styles = StyleSheet.create({
     marginBottom: hp(20),
     maxHeight: hp(350),
   },
+  cartIcon: {
+    width: wp(24),
+    height: hp(26),
+  }
 });
 
-//make this component available to the app
 export default ServicesSubCategory;

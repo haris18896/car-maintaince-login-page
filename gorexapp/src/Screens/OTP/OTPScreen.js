@@ -1,193 +1,255 @@
-//import liraries
-import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, Image } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import FullButton from '../../Components/Buttons/FullButton';
-import Header from '../../Components/Header/Header';
+import React, {useEffect, useState} from "react";
+import {Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
 
-import { BLACK, BLUE, GREY_TEXT, WHITE } from '../../constants/colors';
-import {
- PoppinsRegular,
- SFProDisplayMedium,
- SFProDisplayRegular,
-} from '../../constants/fonts';
-import { hp, responsiveFontSize, wp } from '../../utils/responsiveSizes';
-import OTPInputView from '@twotalltotems/react-native-otp-input';
-import { Phone } from '../../assets';
-// create a component
-const OTP = () => {
- const navigation = useNavigation();
- const [resendTime, setResendTime] = useState(46);
+import {useTranslation} from "react-i18next";
+import {CommonActions, useNavigation} from "@react-navigation/native";
+import LinearGradient from "react-native-linear-gradient";
+import OTPInputView from "@twotalltotems/react-native-otp-input";
 
- useEffect(() => {
-  const timeout = setInterval(() => {
-   let time = resendTime;
-   if (time > 0) {
-    setResendTime((_time) => {
-     if (_time > 0) {
-      return _time - 1;
-     } else {
+import Fonts from "../../Constants/fonts";
+import FontSize from "../../Constants/FontSize";
+import Colors from "../../Constants/Colors";
+import {showToast} from "../../utils/common";
+import {GreenPhoneMessage} from "../../assets";
+import Utilities from "../../utils/UtilityMethods";
+import GeneralAPIWithEndPoint from "../../api/GeneralAPIWithEndPoint";
+import {hp, wp} from "../../utils/responsiveSizes";
+
+import Loader from "../../Components/Loader";
+import BackHeader from "../../Components/Header/BackHeader";
+
+
+const OTP = ({ route }) => {
+  const email = route?.params?.email;
+  const phone = route?.params?.phone;
+  const fromRegister = route?.params?.fromRegister;
+
+  const { t } = useTranslation();
+  const navigation = useNavigation();
+  const timerCount = 90;
+
+  const [loading, setLoading] = useState(false);
+  const [resendTime, setResendTime] = useState(timerCount);
+
+  useEffect(() => {
+    countTimer();
+
+    return () => {
       clearInterval(timeout);
-      return 0;
-     }
-    });
-   } else {
-    clearInterval(timeout);
-   }
-  }, 1000);
-  return () => {
-   clearInterval(timeout);
-  };
- }, []);
+    };
+  }, []);
 
- const formatTime = (t) => {
-  if (t >= 10) return t;
-  return `0${t}`;
- };
- return (
-  <View style={styles.container}>
-   <Header title={'OTP Verification'} />
-   <ScrollView
-    style={styles.content}
-    contentContainerStyle={styles.contentContainerStyle}
-   >
-    <View>
-     <Text style={styles.timer}>00:{formatTime(resendTime)}</Text>
-     <Image style={styles.phoneLogo} source={Phone} />
-     <Text style={styles.description}>
-      Please type the varification Code Sent to
-     </Text>
-     <Text style={styles.medium}>Your Register Mobile Number / Your Email</Text>
-    </View>
-    <View>
-     <OTPInputView
-      pinCount={6}
-      style={[styles.otpWrapper]}
-      autoFocusOnLoad
-      onCodeFilled={() => {}}
-      editable={true}
-      codeInputFieldStyle={styles.otpInptItem}
-     />
-     <View style={styles.signupButton}>
-      <Text style={styles.signupText}>Did not get code. ? </Text>
-      <TouchableOpacity onPress={() => {}}>
-       <Text style={styles.forgotText}>Resend</Text>
-      </TouchableOpacity>
-     </View>
-    </View>
-    <View>
-     <View style={styles.buttonContainer}>
-      <FullButton
-    //    onPress={() => navigation.navigate('Dashboard')}
-       title={'Verify'}
-      />
-     </View>
-     <Text style={styles.bottomText}>
-      By continuing, you agree to Grow’s Terms of Service and Privacy Policy
-     </Text>
-    </View>
-   </ScrollView>
-  </View>
- );
+  let timeout = null;
+  const countTimer = () => {
+    let time = 120;
+    timeout = setInterval(() => {
+      if (time !== 120) {
+        time = resendTime;
+      }
+      if (time > 0) {
+        setResendTime((_time) => {
+          if (_time > 0) {
+            return _time - 1;
+          } else {
+            clearInterval(timeout);
+            return 0;
+          }
+        });
+      } else {
+        clearInterval(timeout);
+      }
+    }, 1000);
+  };
+  function str_pad_left(string, pad, length) {
+    return (new Array(length + 1).join(pad) + string).slice(-length);
+  }
+
+  const formatTime = (t) => {
+    var minutes = Math.floor(t / 60);
+    var seconds = t - minutes * 60;
+    return str_pad_left(minutes, "0", 2) + ":" + str_pad_left(seconds, "0", 2);
+  };
+
+
+  const sendOtp = async ()  => {
+    const body = {phone_number: phone};
+    const forgotPasswordResponse = await GeneralAPIWithEndPoint("/generate/api/otp", body);
+    setResendTime(timerCount);
+    clearInterval(timeout);
+    countTimer();
+    showToast("Success", forgotPasswordResponse, "success");
+  };
+
+  const verifyOtp = async (otp) => {
+    setLoading(true);
+    const body = {phone, otp_code: otp,};
+    const verifyOTPResponse = await GeneralAPIWithEndPoint("/verify/otp", body);
+    setLoading(false);
+
+    if (verifyOTPResponse === "Invalid OTP!") {
+      showToast("Error", verifyOTPResponse, "error");
+    }else {
+      showToast("Success", verifyOTPResponse, "success");
+      if (fromRegister) {
+        const resetAction = CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        });
+        navigation.dispatch(resetAction);
+      }else {
+        navigation.navigate("ResetPassword", {phone});
+      }
+
+    }
+  };
+
+  return (
+      <View style={styles.container}>
+        <BackHeader title={t("OTP.verify")} />
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainerStyle}>
+          <View>
+            <View style={{ alignItems: "center" }}>
+              <GreenPhoneMessage width={wp(63)} height={hp(85)} />
+            </View>
+            <Text style={styles.descriptionVerification}>{t("OTP.code")}</Text>
+            <Text style={styles.description}>{t("OTP.codesent")}</Text>
+            <Text style={styles.medium}>{phone || email}</Text>
+          </View>
+          <LinearGradient colors={["#000", "#362380"]} style={{ flex: 1 }}>
+            {resendTime === 0 && (
+                <View style={styles.signupButton}>
+                  <Text style={styles.signupText}>{t("OTP.getcode")}</Text>
+                  <View style={{height:hp(10)}}/>
+                  <TouchableOpacity onPress={sendOtp}>
+                    <Text style={styles.forgotText}>{t("OTP.resend")}</Text>
+                    {/*<Text style={styles.timer}>{resendTime} {t("OTP.seconds")} </Text>*/}
+                  </TouchableOpacity>
+                </View>
+            )}
+            {resendTime !== 0 && (
+                <View style={styles.signupButton}>
+                  <Text style={styles.signupText}>{t("OTP.resendcode")} {` `}
+                    <Text style={styles.timer}>{resendTime} {t("OTP.seconds")} </Text>
+                  </Text>
+                </View>
+            )}
+            <View style={{ height: Utilities.hp(22), paddingHorizontal:Utilities.wp(15), paddingTop:Utilities.hp(6)}}>
+              <OTPInputView
+                  pinCount={4}
+                  style={[styles.otpWrapper]}
+                  autoFocusOnLoad
+                  onCodeFilled={(value) => {
+                    verifyOtp(value).then();
+                  }}
+                  editable={true}
+                  codeInputFieldStyle={styles.otpInptItem}
+              />
+            </View>
+          </LinearGradient>
+          <View></View>
+        </ScrollView>
+        <Loader visible={loading} />
+      </View>
+  );
 };
 
 // define your styles
+// define your styles
 const styles = StyleSheet.create({
- container: {
-  flex: 1,
-  backgroundColor: WHITE,
- },
- content: {
-  flex: 1,
-  paddingHorizontal: wp(22),
-  marginTop: hp(10),
- },
- buttonContainer: {
-  marginTop: hp(14),
- },
- bottomText: {
-  marginTop: hp(15),
-  textAlign: 'center',
-  fontSize: responsiveFontSize(13),
-  textAlign: 'left',
-  fontFamily: PoppinsRegular,
-  color: GREY_TEXT,
- },
- timer: {
-  textAlign: 'center',
-  fontSize: responsiveFontSize(20),
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
-  color: GREY_TEXT,
- },
- description: {
-  textAlign: 'center',
-  fontSize: responsiveFontSize(16),
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
-  color: GREY_TEXT,
-  marginTop: hp(15),
- },
- phoneLogo: {
-  alignSelf: 'center',
-  marginTop: 10,
-  width: wp(112),
-  height: wp(112),
-  resizeMode: 'contain',
- },
- medium: {
-  color: BLUE,
-  textAlign: 'center',
-  fontSize: responsiveFontSize(16),
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
- },
- otpInptItem: {
-  width: wp(34),
-  borderWidth: 0,
-  borderBottomWidth: 1,
-  borderBottomColor: GREY_TEXT,
-  alignItems: 'center',
-  textAlign: 'center',
-  color: BLACK,
-  fontSize: responsiveFontSize(24),
-  textAlign: 'left',
-  fontFamily: SFProDisplayRegular,
- },
- otpWrapper: {
-  flexDirection: 'row',
-  justifyContent: 'space-around',
+  container: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+  },
+  content: {
+    flex: 1,
 
-  marginHorizontal: wp(25),
- },
- contentContainerStyle: {
-  justifyContent: 'space-between',
-  flex: 1,
- },
- signupButton: {
-  flexDirection: 'row',
-  justifyContent: 'flex-end',
-  alignItems: 'center',
+    marginTop: hp(10),
+  },
+  buttonContainer: {
+    marginTop: hp(14),
+  },
+  bottomText: {
+    marginTop: hp(15),
+    textAlign: "center",
+    ...FontSize.rfs13,
+    fontFamily: Fonts.LexendRegular,
+    color: Colors.GREY_TEXT,
+  },
+  timer: {
+    textAlign: "center",
+    fontFamily: Fonts.LexendMedium,
+    color: Colors.DARKERGREEN,
+  },
+  description: {
+    textAlign: "center",
+    ...FontSize.rfs14,
+    fontFamily: Fonts.LexendMedium,
+    color: Colors.GREY_TEXT,
+    marginTop: hp(15),
+  },
 
-  marginBottom: hp(15),
-  marginRight: wp(20),
-  marginTop: hp(23),
- },
- signupText: {
-  textAlign: 'center',
-  fontSize: responsiveFontSize(13),
-  textAlign: 'left',
-  fontFamily: PoppinsRegular,
-  color: GREY_TEXT,
- },
+  descriptionVerification: {
+    textAlign: "center",
+    ...FontSize.rfs24,
+    fontFamily: Fonts.LexendBold,
+    color: Colors.BLACK,
+    marginTop: hp(15),
+  },
+  phoneLogo: {
+    alignSelf: "center",
+    marginTop: 10,
+    width: wp(100),
+    height: wp(100),
+    resizeMode: "contain",
+  },
+  medium: {
+    color: Colors.BLACK,
+    textAlign: "center",
+    ...FontSize.rfs14,
+    fontFamily: Fonts.LexendBold,
+    marginBottom: Utilities.hp(3),
+  },
+  otpInptItem: {
+    width: wp(34),
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.DARKERGREEN,
+    alignItems: "center",
+    textAlign: "center",
+    color: Colors.WHITE,
+    ...FontSize.rfs24,
+    fontFamily: Fonts.LexendRegular,
+  },
+  otpWrapper: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  contentContainerStyle: {
+    justifyContent: "space-between",
+    flex: 1,
+  },
+  signupButton: {
+    justifyContent: "flex-end",
+    alignItems: "center",
 
- forgotText: {
-  color: BLUE,
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
-  fontSize: responsiveFontSize(16),
- },
+    marginBottom: hp(15),
+    marginRight: wp(20),
+    marginTop: hp(23),
+  },
+  signupText: {
+    textAlign: "center",
+    ...FontSize.rfs15,
+    fontFamily: Fonts.LexendRegular,
+    color: Colors.WHITE,
+  },
+
+  forgotText: {
+    color: Colors.WHITE,
+    fontFamily: Fonts.LexendMedium,
+    ...FontSize.rfs16,
+    marginBottom: 5,
+    textDecorationLine: 'underline'
+  },
 });
 
 //make this component available to the app

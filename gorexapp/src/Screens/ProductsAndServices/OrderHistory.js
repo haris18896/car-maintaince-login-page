@@ -1,59 +1,58 @@
-//import liraries
-
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet, FlatList } from "react-native";
-import { useDispatch } from "react-redux";
-import EmptyList from "../../Components/EmptyList";
+import { MenuBlack } from "../../assets";
 import BackHeader from "../../Components/Header/BackHeader";
-import { WHITE } from "../../constants/colors";
-import { getOrders } from "../../store/actions/order";
-import { groupBy } from "../../utils/common";
-import { wp } from "../../utils/responsiveSizes";
-import OrderCard from "./ components/OrderCard";
+import NoOrder from "../../Components/NoOrder";
+import Colors from "../../Constants/Colors";
+import GetOrderHistory from "../../api/GetOrderHistory";
+import {hp, wp} from "../../utils/responsiveSizes";
+import OrderCard from "./components/OrderCard";
+import TabBarOrder from "./components/TabBarOrder";
+import {CommonContext} from "../../contexts/ContextProvider";
+import {showToast} from "../../utils/common";
 
-import TabBarOrder from "./ components/TabBarOrder";
+const OrderHistory = ({ navigation }) => {
 
-// create a component
-const OrderHistory = () => {
+  const {userProfile} = useContext(CommonContext);
+
   const [active, setActive] = useState(2);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch();
   const { t } = useTranslation();
 
-  const fetchData = () => {
-    setLoading(true);
-    dispatch(getOrders()).then((res) => {
-      setLoading(false);
-      if (!res?.payload?.error) {
-        const groupedOrders = groupBy(res?.payload, "status");
-        // console.log(JSON.stringify(res?.payload, null, 2));
-        setOrders(groupedOrders);
+  useEffect(() => {
+    return navigation.addListener('focus', handleViewSwitch);
+  }, [navigation]);
+
+  const handleViewSwitch = () =>{
+    fetchHistory().then();
+  }
+
+  const fetchHistory = async () => {
+    GetOrderHistory({profileID:userProfile?.id, orderID:null}).then(({ success, response }) => {
+      if (success) {
+        setOrders(response);
+      } else {
+        showToast("Error", response, "error");
       }
     });
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  }
 
   return (
     <View style={styles.container}>
-      <BackHeader title={t("order_history.Order History")} />
+      <BackHeader title={t("order_history.Order History")} leftIcon={MenuBlack} leftPress={() => navigation.openDrawer()}/>
       <TabBarOrder active={active} setActive={setActive} />
       <View style={styles.paddedContent}>
         <FlatList
+            contentContainerStyle={{paddingBottom:hp(50)}}
           data={
-            active == 1
-              ? orders?.completed
-              : active == 2
-              ? orders?.incomplete
-              : orders?.accepted
+            active === 1
+              ? orders?.filter((order) => order?.status === "complete") : active === 2
+              ? orders?.filter((order) => order?.status === "draft" || order?.status === "order_accepted" || order?.status === "order_placed") : orders?.filter((order) => order?.status === "cancel")
           }
-          ListEmptyComponent={EmptyList}
-          onRefresh={() => fetchData()}
+          ListEmptyComponent={NoOrder}
           refreshing={loading}
           renderItem={({ item }) => <OrderCard order={item} active={active} />}
         />
@@ -62,17 +61,15 @@ const OrderHistory = () => {
   );
 };
 
-// define your styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: Colors.WHITE,
   },
   paddedContent: {
-    paddingHorizontal: wp(14),
+    alignItems:'center',
     flex: 1,
   },
 });
 
-//make this component available to the app
 export default OrderHistory;

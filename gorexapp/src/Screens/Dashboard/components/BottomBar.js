@@ -1,130 +1,153 @@
-//import liraries
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
- View,
- TouchableOpacity,
- StyleSheet,
- Image,
- Text,
- Switch,
-} from 'react-native';
-import { Fuel } from '../../../assets';
-import {
- ALICE_BLUE,
- BLACK,
- BLUE,
- GHOST_WHITE,
-} from '../../../constants/colors';
-import { hp, responsiveFontSize, wp } from '../../../utils/responsiveSizes';
-import { SFProDisplayMedium } from '../../../constants/fonts';
-import { FlatList } from 'react-native-gesture-handler';
-import { useDispatch } from 'react-redux';
-import { getServiceTypes } from '../../ServiceProvider/ServiceProviderActions';
-import { useIsFocused } from '@react-navigation/native';
-// create a component
-const BottomBar = ({ filterChanged }) => {
- const [active, setActive] = useState(1);
- const dispatch = useDispatch();
- const focus = useIsFocused();
+  View,
+  Text,
+  Image,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 
- const [serviceTypes, setServiceTypes] = useState([]);
+import { useTranslation } from "react-i18next";
+import LinearGradient from "react-native-linear-gradient";
 
- useEffect(() => {
-  if (focus) {
-   dispatch(getServiceTypes()).then((res) => {
-    setServiceTypes(res?.payload?.data);
-   });
+import Fonts from "../../../Constants/fonts";
+import Colors from "../../../Constants/Colors";
+import { Linear } from "../../../Constants/Linear";
+import FontSize from "../../../Constants/FontSize";
+import Utilities from "../../../utils/UtilityMethods";
+import FontFamily from "../../../Constants/FontFamily";
+import { hp, wp } from "../../../utils/responsiveSizes";
+import { Services, GreenGorexIcon } from "../../../assets";
+
+const BottomBar = ({serviceCategories, filterChanged, resetFilter, setResetFilter, navigateToGoD}) => {
+  const { t } = useTranslation();
+  const [active, setActive] = useState(1);
+
+  useEffect(() => {
+    setActive(null);
+  }, [resetFilter]);
+
+  if (!serviceCategories?.length) {
+    return null;
   }
- }, [focus]);
- return (
-  <View style={styles.container}>
-   <View style={styles.buttons}>
-    <FlatList
-     data={serviceTypes}
-     showsHorizontalScrollIndicator={false}
-     renderItem={({ item }) => (
-      <View style={styles.buttonContainer}>
-       <TouchableOpacity
-        onPress={() => {
-         setActive(item?._id);
-         filterChanged(item?._id);
-        }}
-        style={active === item?._id ? styles.buttonActive : styles.button}
-       >
-        <Image source={Fuel} />
-       </TouchableOpacity>
-       <Text style={styles.buttonText}>{item?.name}</Text>
-      </View>
-     )}
-     horizontal
-    />
-   </View>
-   {/* <View style={styles.bottomAction}>
-        <Text style={styles.bottomText}>Provide Service at My Location</Text>
-        <Switch />
-      </View> */}
-  </View>
- );
+
+  const onPressRowItem = (item) => {
+    if (item?.id === "GoD") {
+      navigateToGoD();
+    } else if (active === item?.id) {
+      setActive(-1);
+      setResetFilter(!resetFilter);
+      filterChanged();
+    } else {
+      setActive(item?.id);
+      filterChanged(item?.id);
+    }
+  }
+
+  const returnRowItem = (item) => {
+    return (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button(active === item?.id)} onPress={() => {onPressRowItem(item)}} activeOpacity={0.5}>
+            <Image style={styles.serviceCategoryIcon} source={item?.id === "GoD" ? GreenGorexIcon : Services} />
+            <View style={styles.titleContainer(active === item?.id)}>
+              <Text style={styles.buttonText(active === item?.id)} numberOfLines={2}>{item?.name}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+    )
+  }
+
+  return (
+      <LinearGradient
+          colors={
+            !Utilities.isIosDevice()
+                ? [
+                  "rgba(0,0,0,0.1)",
+                  "rgba(0,0,0,0.2)",
+                  "rgba(0,0,0,0.3)",
+                  "rgba(0,0,0,0.4)",
+                  "rgba(0,0,0,0.5)",
+                  "rgba(0,0,0,0.6)",
+                  "rgba(0,0,0,0.7)",
+                  "rgba(0,0,0,0.8)",
+                  "rgba(0,0,0,0.9)",
+                  "rgba(0,0,0,1)",
+                ]
+                : Linear
+                    ? Linear
+                    : []
+          }
+          style={styles.container}
+      >
+        {/*<Text style={styles.heading}> {t("dashboard.near")}</Text>*/}
+        <Text style={styles.heading}> {''}</Text>
+        <FlatList horizontal scrollEnabled={false}
+            data={serviceCategories}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (returnRowItem(item))}
+        />
+      </LinearGradient>
+  );
 };
 
-// define your styles
 const styles = StyleSheet.create({
- container: {
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: ALICE_BLUE,
-  minHeight: hp(129),
-  borderTopLeftRadius: wp(20),
-  borderTopRightRadius: wp(20),
-  paddingHorizontal: wp(16),
- },
- buttons: {
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  flexDirection: 'row',
-  marginTop: -wp(53),
- },
- buttonContainer: {
-  alignItems: 'center',
-  marginRight: wp(10),
- },
- button: {
-  backgroundColor: GHOST_WHITE,
-  height: wp(103),
-  width: wp(103),
-  borderRadius: wp(20),
-  justifyContent: 'center',
-  alignItems: 'center',
- },
- buttonActive: {
-  backgroundColor: BLUE,
-  height: wp(103),
-  width: wp(103),
-  borderRadius: wp(20),
-  justifyContent: 'center',
-  alignItems: 'center',
- },
- buttonText: {
-  color: BLUE,
-  fontSize: responsiveFontSize(14),
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
- },
- bottomAction: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  marginTop: wp(11),
- },
- bottomText: {
-  fontSize: responsiveFontSize(14),
-  textAlign: 'left',
-  fontFamily: SFProDisplayMedium,
-  color: BLACK,
- },
+  container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    // paddingLeft: Utilities.wp(4),
+    // paddingBottom: Utilities.wp(7),
+  },
+  buttonContainer: {
+    // marginRight: wp(16),
+  },
+  button: (active) => {
+    return {
+      width: wp(428),
+      height: hp(139),
+      paddingTop: hp(20),
+      // borderRadius: wp(10),
+      justifyContent: 'space-between',
+
+      // borderWidth: active ? hp(1) : 0,
+      backgroundColor: active ? "transparent" : Colors.WHITE,
+      // borderColor: active ? Colors.DARKERGREEN : Colors.BORDER_GRAYLIGHTEST,
+    }
+  },
+  titleContainer: (active) => {
+    return {
+      height: hp(63),
+      paddingLeft: wp(20),
+      paddingRight: wp(5),
+      backgroundColor: active ? Colors.DARKERGREEN : "transparent",
+    }
+  },
+  buttonText: (active) => {
+    return {
+      ...FontSize.rfs16,
+      ...FontFamily.medium,
+      color: active ? Colors.WHITE : Colors.BLACK,
+      alignSelf: 'flex-start',
+      width: '100%',
+      height: '100%',
+    }
+  },
+  heading: {
+    ...FontSize.rfs18,
+    fontFamily: Fonts.LexendSemiBold,
+    textAlign: "left",
+    color: Colors.WHITE,
+    marginBottom: Utilities.wp(3.5),
+  },
+  serviceCategoryIcon: {
+    width: wp(32),
+    height: wp(32),
+    marginStart: hp(20),
+    marginBottom: hp(20),
+    resizeMode: "contain",
+  }
 });
 
-//make this component available to the app
 export default BottomBar;
